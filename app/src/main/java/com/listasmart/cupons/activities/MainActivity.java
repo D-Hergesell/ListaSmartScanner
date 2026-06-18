@@ -470,7 +470,7 @@ public class MainActivity extends AppCompatActivity {
         list.add(new LeaderboardUser(session.getUserName(), points, contribCount,
                 session.getInitials(), true));
 
-        ApiClient.getApiService().getLeaderboard().enqueue(new Callback<List<LeaderboardUser>>() {
+        ApiClient.getApiService().getRanking().enqueue(new Callback<List<LeaderboardUser>>() {
             @Override
             public void onResponse(Call<List<LeaderboardUser>> call,
                                    Response<List<LeaderboardUser>> response) {
