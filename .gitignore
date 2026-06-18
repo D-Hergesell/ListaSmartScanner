@@ -7,3 +7,6 @@ build/
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Backend Spring Boot — repositório git próprio (não versionar pelo repo do app)
+/backend/
