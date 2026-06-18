@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ListaSmart" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/indigo</item>
+        <item name="colorPrimaryDark">@color/indigo_dark</item>
+        <item name="colorAccent">@color/purple</item>
+        <item name="android:windowBackground">@color/bg_light</item>
+        <item name="android:statusBarColor">@color/indigo</item>
+    </style>
+</resources>

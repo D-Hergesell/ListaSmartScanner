@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lista Smart</string>
+    <string name="header_title">Leitor de Cupons</string>
+
+    <!-- Login -->
+    <string name="login_title">Bem-vindo</string>
+    <string name="login_subtitle">Identifique-se para começar a colaborar</string>
+    <string name="hint_name">Seu nome</string>
+    <string name="btn_enter">Entrar</string>
+
+    <!-- Tabs -->
+    <string name="tab_scan">Escanear</string>
+    <string name="tab_manual">Manual</string>
+    <string name="tab_profile">Perfil</string>
+
+    <!-- Scanner -->
+    <string name="scan_title">Escanear Cupom Fiscal</string>
+    <string name="scan_subtitle">Aponte a câmera para o QR Code do cupom fiscal</string>
+    <string name="btn_start_camera">Iniciar Câmera</string>
+    <string name="btn_cancel">Cancelar</string>
+
+    <!-- Manual -->
+    <string name="manual_title">Cadastro Manual</string>
+    <string name="manual_subtitle">Insira os dados do produto manualmente</string>
+    <string name="label_product">Produto *</string>
+    <string name="label_market">Mercado *</string>
+    <string name="label_price">Preço (R$) *</string>
+    <string name="label_date">Data da Compra *</string>
+    <string name="hint_select_product">Selecione um produto</string>
+    <string name="hint_select_market">Selecione um mercado</string>
+    <string name="hint_price">Ex: 10.50</string>
+    <string name="manual_info">Certifique-se de que todos os dados estão corretos antes de enviar. Contribuições manuais valem 5 pontos.</string>
+    <string name="btn_register_product">Cadastrar Produto</string>
+
+    <!-- Profile -->
+    <string name="profile_role">Colaborador Ativo</string>
+    <string name="points_label">Pontos</string>
+    <string name="contributions_label">Contribuições</string>
+    <string name="ranking_label">Ranking</string>
+    <string name="trust_title">Selo de Confiabilidade</string>
+    <string name="current_level">Nível atual</string>
+    <string name="progress_next">Progresso para o próximo nível</string>
+    <string name="leaderboard_title">Ranking de Colaboradores</string>
+    <string name="history_title">Histórico de Contribuições</string>
+    <string name="empty_history">Nenhuma contribuição ainda.\nComece escaneando um cupom ou adicionando preços manualmente!</string>
+    <string name="btn_logout">Sair</string>
+</resources>

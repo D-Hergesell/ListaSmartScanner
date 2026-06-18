@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:src="@drawable/ic_edit" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/manual_title"
+            android:textColor="@color/gray_800"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/manual_subtitle"
+            android:textColor="@color/gray_600"
+            android:textSize="14sp" />
+
+        <!-- Alerta de sucesso -->
+        <LinearLayout
+            android:id="@+id/manualSuccessAlert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_alert_green"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_check" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Produto cadastrado com sucesso! +5 pontos"
+                android:textColor="@color/green_text"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Card do formulário -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Produto -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_product"
+                android:textColor="@color/gray_800"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spinnerProduct"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_input"
+                android:paddingHorizontal="12dp" />
+
+            <EditText
+                android:id="@+id/inputProductOther"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_input"
+                android:hint="Digite o nome do produto"
+                android:inputType="text"
+                android:paddingHorizontal="12dp"
+                android:textColorHint="@color/gray_500"
+                android:visibility="gone" />
+
+            <!-- Mercado -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_market"
+                android:textColor="@color/gray_800"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spinnerMarket"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_input"
+                android:paddingHorizontal="12dp" />
+
+            <EditText
+                android:id="@+id/inputMarketOther"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_input"
+                android:hint="Digite o nome do mercado"
+                android:inputType="text"
+                android:paddingHorizontal="12dp"
+                android:textColorHint="@color/gray_500"
+                android:visibility="gone" />
+
+            <!-- Preço -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_price"
+                android:textColor="@color/gray_800"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/inputPrice"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_input"
+                android:hint="@string/hint_price"
+                android:inputType="numberDecimal"
+                android:paddingHorizontal="12dp"
+                android:textColorHint="@color/gray_500" />
+
+            <!-- Data -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_date"
+                android:textColor="@color/gray_800"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/inputDate"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_input"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/gray_900" />
+
+            <!-- Aviso -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_alert_blue"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_info" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/manual_info"
+                    android:textColor="@color/blue_text"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnRegisterProduct"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/btn_primary"
+                android:text="@string/btn_register_product"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

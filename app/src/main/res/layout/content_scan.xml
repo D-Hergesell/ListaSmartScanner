@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:src="@drawable/ic_qr" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/scan_title"
+            android:textColor="@color/gray_800"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="@string/scan_subtitle"
+            android:textColor="@color/gray_600"
+            android:textSize="14sp" />
+
+        <!-- Alerta de sucesso -->
+        <LinearLayout
+            android:id="@+id/scanSuccessAlert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_alert_green"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_check" />
+
+            <TextView
+                android:id="@+id/scanSuccessText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Cupom lido com sucesso! +10 pontos"
+                android:textColor="@color/green_text"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Área da câmera (placeholder) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="280dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_camera">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_camera_gray" />
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/btnStartCamera"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/btn_primary"
+            android:drawableStart="@drawable/ic_camera"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:text="@string/btn_start_camera"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+        <!-- Dados do cupom lido -->
+        <LinearLayout
+            android:id="@+id/scanResultBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dados do Cupom:"
+                android:textColor="@color/gray_500"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/scanResultData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="monospace"
+                android:textColor="@color/gray_800"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

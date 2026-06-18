@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="indigo">#4F46E5</color>
+    <color name="indigo_dark">#4338CA</color>
+    <color name="purple">#7C3AED</color>
+    <color name="white">#FFFFFF</color>
+    <color name="bg_light">#EEF2FF</color>
+    <color name="bg_blue">#EFF6FF</color>
+    <color name="gray_900">#111827</color>
+    <color name="gray_800">#1F2937</color>
+    <color name="gray_600">#4B5563</color>
+    <color name="gray_500">#6B7280</color>
+    <color name="gray_300">#D1D5DB</color>
+    <color name="gray_200">#E5E7EB</color>
+    <color name="gray_100">#F3F4F6</color>
+    <color name="gray_50">#F9FAFB</color>
+    <color name="green">#16A34A</color>
+    <color name="green_bg">#F0FDF4</color>
+    <color name="green_text">#166534</color>
+    <color name="blue_bg">#EFF6FF</color>
+    <color name="blue_text">#1E40AF</color>
+    <color name="red">#EF4444</color>
+    <color name="red_text">#DC2626</color>
+    <color name="bronze">#EA580C</color>
+    <color name="silver">#9CA3AF</color>
+    <color name="gold">#EAB308</color>
+    <color name="camera_dark">#111827</color>
+</resources>
