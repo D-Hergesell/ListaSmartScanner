@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.listasmart.cupons.models.Contribution;
 import com.listasmart.cupons.models.Market;
+import com.listasmart.cupons.models.OutboxEntry;
 import com.listasmart.cupons.models.Product;
 
 import java.util.ArrayList;
@@ -24,7 +25,8 @@ import java.util.List;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "lista_smart.db";
-    private static final int DB_VERSION = 1;
+    // v2: tabela outbox (fila offline com chave de idempotência).
+    private static final int DB_VERSION = 2;
 
     // Tabela de contribuições
     public static final String T_CONTRIB = "contributions";
@@ -47,6 +49,17 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String T_MARKETS = "markets";
     public static final String M_ID = "id";
     public static final String M_NAME = "name";
+
+    // Fila offline (outbox): contribuições aguardando envio ao backend.
+    public static final String T_OUTBOX = "outbox";
+    public static final String O_ID = "id";
+    public static final String O_UUID = "client_uuid";   // chave de idempotência
+    public static final String O_TYPE = "type";
+    public static final String O_PRODUCT = "product";
+    public static final String O_MARKET = "market";
+    public static final String O_PRICE = "price";
+    public static final String O_DATE = "date";
+    public static final String O_RAW = "raw_data";
 
     public DBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -72,6 +85,16 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + T_MARKETS + " (" +
                 M_ID + " TEXT PRIMARY KEY, " +
                 M_NAME + " TEXT)");
+
+        db.execSQL("CREATE TABLE " + T_OUTBOX + " (" +
+                O_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                O_UUID + " TEXT, " +
+                O_TYPE + " TEXT, " +
+                O_PRODUCT + " TEXT, " +
+                O_MARKET + " TEXT, " +
+                O_PRICE + " REAL, " +
+                O_DATE + " TEXT, " +
+                O_RAW + " TEXT)");
     }
 
     @Override
@@ -79,6 +102,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + T_CONTRIB);
         db.execSQL("DROP TABLE IF EXISTS " + T_PRODUCTS);
         db.execSQL("DROP TABLE IF EXISTS " + T_MARKETS);
+        db.execSQL("DROP TABLE IF EXISTS " + T_OUTBOX);
         onCreate(db);
     }
 
@@ -101,6 +125,29 @@ public class DBHelper extends SQLiteOpenHelper {
         long id = db.insert(T_CONTRIB, null, v);
         db.close();
         return id;
+    }
+
+    /**
+     * Substitui o cache local pelo histórico vindo da nuvem (fonte da verdade).
+     * Preserva o id do servidor para que edição/exclusão usem o mesmo identificador.
+     */
+    public void replaceContributions(List<Contribution> items) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(T_CONTRIB, null, null);
+        for (Contribution c : items) {
+            ContentValues v = new ContentValues();
+            v.put(C_ID, c.getId());            // id canônico do backend
+            v.put(C_TYPE, c.getType());
+            v.put(C_PRODUCT, c.getProduct());
+            v.put(C_MARKET, c.getMarket());
+            v.put(C_PRICE, c.getPrice());
+            v.put(C_DATE, c.getDate());
+            v.put(C_RAW, c.getRawData());
+            v.put(C_SUBMITTED, c.getSubmittedAt());
+            v.put(C_POINTS, c.getPoints());
+            db.insert(T_CONTRIB, null, v);
+        }
+        db.close();
     }
 
     /** READ: lista todas as contribuições, mais recentes primeiro. */
@@ -246,5 +293,56 @@ public class DBHelper extends SQLiteOpenHelper {
         c.close();
         db.close();
         return count > 0;
+    }
+
+    // ---------------------------------------------------------------
+    // Fila offline (outbox)
+    // ---------------------------------------------------------------
+
+    /** Enfileira uma contribuição pendente e devolve o id local gerado. */
+    public long enqueueOutbox(OutboxEntry e) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues v = new ContentValues();
+        v.put(O_UUID, e.getClientUuid());
+        v.put(O_TYPE, e.getType());
+        v.put(O_PRODUCT, e.getProduct());
+        v.put(O_MARKET, e.getMarket());
+        v.put(O_PRICE, e.getPrice());
+        v.put(O_DATE, e.getDate());
+        v.put(O_RAW, e.getRawData());
+        long id = db.insert(T_OUTBOX, null, v);
+        db.close();
+        return id;
+    }
+
+    /** Lista as contribuições pendentes, mais antigas primeiro (ordem de envio). */
+    public List<OutboxEntry> getOutbox() {
+        List<OutboxEntry> list = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(T_OUTBOX, null, null, null, null, null, O_ID + " ASC");
+        if (cursor.moveToFirst()) {
+            do {
+                OutboxEntry e = new OutboxEntry();
+                e.setId(cursor.getLong(cursor.getColumnIndexOrThrow(O_ID)));
+                e.setClientUuid(cursor.getString(cursor.getColumnIndexOrThrow(O_UUID)));
+                e.setType(cursor.getString(cursor.getColumnIndexOrThrow(O_TYPE)));
+                e.setProduct(cursor.getString(cursor.getColumnIndexOrThrow(O_PRODUCT)));
+                e.setMarket(cursor.getString(cursor.getColumnIndexOrThrow(O_MARKET)));
+                e.setPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(O_PRICE)));
+                e.setDate(cursor.getString(cursor.getColumnIndexOrThrow(O_DATE)));
+                e.setRawData(cursor.getString(cursor.getColumnIndexOrThrow(O_RAW)));
+                list.add(e);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return list;
+    }
+
+    /** Remove uma pendência da outbox (após confirmação do backend). */
+    public void deleteOutbox(long id) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(T_OUTBOX, O_ID + "=?", new String[]{String.valueOf(id)});
+        db.close();
     }
 }

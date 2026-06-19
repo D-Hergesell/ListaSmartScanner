@@ -10,10 +10,15 @@
     <!-- Login -->
     <string name="login_title">Bem-vindo</string>
     <string name="login_subtitle">Identifique-se para começar a colaborar</string>
-    <string name="hint_name">Seu nome</string>
+    <string name="hint_name">Seu nome de usuário</string>
+    <string name="hint_password">Sua senha (mín. 6 caracteres)</string>
     <string name="btn_enter">Entrar</string>
     <string name="error_required_title">Campo obrigatório</string>
     <string name="error_name_required">Por favor, informe seu nome para continuar.</string>
+    <string name="error_password_required">Informe uma senha com ao menos 6 caracteres.</string>
+    <string name="error_auth_title">Não foi possível entrar</string>
+    <string name="error_auth_failed">Verifique seu nome de usuário e senha e tente novamente.</string>
+    <string name="error_network">Sem conexão com o servidor. Verifique sua internet e tente novamente.</string>
 
     <!-- Tabs -->
     <string name="tab_scan">Escanear</string>
@@ -46,6 +51,9 @@
     <string name="hint_price">Ex: 10.50</string>
     <string name="manual_info">Certifique-se de que todos os dados estão corretos antes de enviar. Contribuições manuais valem 5 pontos.</string>
     <string name="manual_success">Produto cadastrado com sucesso! +5 pontos</string>
+    <string name="error_contribution_failed">Não foi possível enviar sua contribuição. Verifique a conexão e tente novamente.</string>
+    <string name="queued_offline_title">Salvo para envio</string>
+    <string name="queued_offline_message">Sem conexão no momento. Sua contribuição foi salva e será enviada automaticamente assim que você reconectar.</string>
     <string name="btn_register_product">Cadastrar Produto</string>
     <string name="error_incomplete_title">Dados incompletos</string>
     <string name="error_product_required">Selecione ou informe o produto.</string>

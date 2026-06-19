@@ -31,13 +31,16 @@ import com.listasmart.cupons.helpers.SessionManager;
 import com.listasmart.cupons.models.Contribution;
 import com.listasmart.cupons.models.LeaderboardUser;
 import com.listasmart.cupons.models.Market;
+import com.listasmart.cupons.models.OutboxEntry;
 import com.listasmart.cupons.models.Product;
+import com.listasmart.cupons.models.UserMe;
 import com.listasmart.cupons.network.ApiClient;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -98,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         setupScan();
         setupManual();
         loadCatalog();        // Retrofit -> SQLite (apenas na 1ª carga)
+        flushOutbox();        // reenvia contribuições pendentes (fila offline)
         showTab(0);           // inicia na aba Escanear
     }
 
@@ -172,29 +176,99 @@ public class MainActivity extends AppCompatActivity {
 
     private void onQrScanned(String rawValue) {
         if (rawValue == null || rawValue.trim().isEmpty()) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.error_invalid_read_title)
-                    .setMessage(R.string.error_invalid_read_message)
-                    .setPositiveButton(R.string.btn_ok, null)
-                    .show();
+            showReadError();
             return;
         }
+        final String raw = rawValue.trim();
 
-        // Persiste a contribuição no SQLite
-        Contribution c = new Contribution();
-        c.setType(Contribution.TYPE_QR);
-        c.setRawData(rawValue.trim());
-        c.setSubmittedAt(System.currentTimeMillis());
-        c.setPoints(GamificationHelper.POINTS_QR);
-        db.insertContribution(c);
+        // Enfileira na outbox (com chave de idempotência) e tenta enviar agora.
+        OutboxEntry entry = OutboxEntry.qr(UUID.randomUUID().toString(), raw);
+        entry.setId(db.enqueueOutbox(entry));
 
-        // Feedback visual
-        scanResultData.setText(rawValue.trim());
-        scanResultBox.setVisibility(View.VISIBLE);
-        scanSuccessText.setText(getString(R.string.scan_success, GamificationHelper.POINTS_QR));
-        scanSuccessAlert.setVisibility(View.VISIBLE);
-        scanSuccessAlert.startAnimation(android.view.animation.AnimationUtils
-                .loadAnimation(this, android.R.anim.fade_in));
+        postFromOutbox(entry, new ContribUi() {
+            @Override
+            public void onSuccess(List<Contribution> created) {
+                int gained = 0;
+                for (Contribution c : created) gained += c.getPoints();
+                scanResultData.setText(raw);
+                scanResultBox.setVisibility(View.VISIBLE);
+                scanSuccessText.setText(getString(R.string.scan_success, gained));
+                scanSuccessAlert.setVisibility(View.VISIBLE);
+                scanSuccessAlert.startAnimation(android.view.animation.AnimationUtils
+                        .loadAnimation(MainActivity.this, android.R.anim.fade_in));
+            }
+
+            @Override
+            public void onQueued() {
+                showQueuedOffline();
+            }
+        });
+    }
+
+    private void showReadError() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.error_invalid_read_title)
+                .setMessage(R.string.error_invalid_read_message)
+                .setPositiveButton(R.string.btn_ok, null)
+                .show();
+    }
+
+    private void showContributionError() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.error_incomplete_title)
+                .setMessage(R.string.error_contribution_failed)
+                .setPositiveButton(R.string.btn_ok, null)
+                .show();
+    }
+
+    private void showQueuedOffline() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.queued_offline_title)
+                .setMessage(R.string.queued_offline_message)
+                .setPositiveButton(R.string.btn_ok, null)
+                .show();
+    }
+
+    /** Callback de UI para uma tentativa de envio de contribuição. */
+    private interface ContribUi {
+        void onSuccess(List<Contribution> created);
+        void onQueued();
+    }
+
+    /**
+     * Envia uma pendência da outbox ao backend. A chave de idempotência garante
+     * que reenvios não dupliquem. Em sucesso (ou rejeição 4xx do servidor) a
+     * pendência sai da fila; em falha de rede, permanece para retry.
+     * {@code ui} nulo = envio silencioso (flush em segundo plano).
+     */
+    private void postFromOutbox(OutboxEntry entry, ContribUi ui) {
+        ApiClient.getApiService().createContribution(entry.toRequest()).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Contribution>> call,
+                                   @NonNull Response<List<Contribution>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    db.deleteOutbox(entry.getId());            // confirmado pela nuvem
+                    if (ui != null) ui.onSuccess(response.body());
+                } else {
+                    // Rejeição do servidor (ex.: validação): não adianta retentar.
+                    db.deleteOutbox(entry.getId());
+                    if (ui != null) showContributionError();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Contribution>> call, @NonNull Throwable t) {
+                // Sem conexão: mantém na fila para reenvio posterior (flushOutbox).
+                if (ui != null) ui.onQueued();
+            }
+        });
+    }
+
+    /** Reenvia, em silêncio, todas as contribuições pendentes da fila offline. */
+    private void flushOutbox() {
+        for (OutboxEntry entry : db.getOutbox()) {
+            postFromOutbox(entry, null);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -300,25 +374,28 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Persiste no SQLite
-        Contribution c = new Contribution();
-        c.setType(Contribution.TYPE_MANUAL);
-        c.setProduct(product);
-        c.setMarket(market);
-        c.setPrice(price);
-        c.setDate(selectedDateIso);
-        c.setSubmittedAt(System.currentTimeMillis());
-        c.setPoints(GamificationHelper.POINTS_MANUAL);
-        db.insertContribution(c);
+        // Enfileira na outbox (com chave de idempotência) e tenta enviar agora.
+        OutboxEntry entry = OutboxEntry.manual(UUID.randomUUID().toString(),
+                product, market, price, selectedDateIso);
+        entry.setId(db.enqueueOutbox(entry));
 
-        // Feedback + reset
-        manualSuccessAlert.setVisibility(View.VISIBLE);
-        manualSuccessAlert.startAnimation(android.view.animation.AnimationUtils
-                .loadAnimation(this, android.R.anim.fade_in));
-        resetManualForm();
+        postFromOutbox(entry, new ContribUi() {
+            @Override
+            public void onSuccess(List<Contribution> created) {
+                manualSuccessAlert.setVisibility(View.VISIBLE);
+                manualSuccessAlert.startAnimation(android.view.animation.AnimationUtils
+                        .loadAnimation(MainActivity.this, android.R.anim.fade_in));
+                resetManualForm();
+                manualSuccessAlert.postDelayed(() ->
+                        manualSuccessAlert.setVisibility(View.GONE), 3000);
+            }
 
-        manualSuccessAlert.postDelayed(() ->
-                manualSuccessAlert.setVisibility(View.GONE), 3000);
+            @Override
+            public void onQueued() {
+                resetManualForm();   // dado salvo na fila; libera o formulário
+                showQueuedOffline();
+            }
+        });
     }
 
     private void resetManualForm() {
@@ -430,60 +507,103 @@ public class MainActivity extends AppCompatActivity {
     // ---------------------------------------------------------------
 
     private void refreshProfile() {
-        int points = db.sumPoints();
-        int contribCount = db.countContributions();
-
+        // Nome e avatar sempre da sessão local (rápido, sem rede).
         TextView profileName = contentProfile.findViewById(R.id.profileName);
         TextView profileAvatar = contentProfile.findViewById(R.id.profileAvatar);
+        profileName.setText(session.getUserName());
+        profileAvatar.setText(session.getInitials());
+
+        setupLogout();
+
+        // Pontos/contagem/ranking/selo vêm do backend (fonte da verdade).
+        // Sem rede ou sem sessão válida, cai para o cache local (SQLite).
+        ApiClient.getApiService().getMe().enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<UserMe> call, @NonNull Response<UserMe> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    renderProfileFromCloud(response.body());
+                } else {
+                    renderProfileFromLocalCache();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UserMe> call, @NonNull Throwable t) {
+                renderProfileFromLocalCache();
+            }
+        });
+
+        loadHistory();
+        loadLeaderboard();
+    }
+
+    /** Perfil a partir do backend (autoritativo). */
+    private void renderProfileFromCloud(UserMe me) {
         TextView profilePoints = contentProfile.findViewById(R.id.profilePoints);
         TextView profileContribCount = contentProfile.findViewById(R.id.profileContribCount);
         TextView profileRank = contentProfile.findViewById(R.id.profileRank);
-
-        profileName.setText(session.getUserName());
-        profileAvatar.setText(session.getInitials());
-        profilePoints.setText(String.valueOf(points));
-        profileContribCount.setText(String.valueOf(contribCount));
-
-        // Selo de confiabilidade
         TextView badgeLevel = contentProfile.findViewById(R.id.badgeLevel);
         TextView badgeCount = contentProfile.findViewById(R.id.badgeCount);
         TextView progressLabel = contentProfile.findViewById(R.id.progressLabel);
         ProgressBar progressBar = contentProfile.findViewById(R.id.progressBar);
 
+        profilePoints.setText(String.valueOf(me.getPoints()));
+        profileContribCount.setText(String.valueOf(me.getContributions()));
+        profileRank.setText(getString(R.string.profile_rank, me.getRankingPosition()));
+        badgeCount.setText(getString(R.string.contributions_count, me.getContributions()));
+
+        UserMe.Badge badge = me.getBadge();
+        if (badge != null) {
+            badgeLevel.setText(badge.getCurrentRank());
+            progressBar.setProgress(badge.getProgressPercent());
+            if (badge.getNextThreshold() != null) {
+                progressLabel.setText(getString(R.string.progress_fraction,
+                        badge.getPoints(), badge.getNextThreshold()));
+            } else {
+                progressLabel.setText(badge.getCurrentRank()); // rank máximo
+            }
+        }
+    }
+
+    /** Fallback offline: usa o cache do SQLite + gamificação local. */
+    private void renderProfileFromLocalCache() {
+        int points = db.sumPoints();
+        int contribCount = db.countContributions();
+
+        TextView profilePoints = contentProfile.findViewById(R.id.profilePoints);
+        TextView profileContribCount = contentProfile.findViewById(R.id.profileContribCount);
+        TextView badgeLevel = contentProfile.findViewById(R.id.badgeLevel);
+        TextView badgeCount = contentProfile.findViewById(R.id.badgeCount);
+        TextView progressLabel = contentProfile.findViewById(R.id.progressLabel);
+        ProgressBar progressBar = contentProfile.findViewById(R.id.progressBar);
+
+        profilePoints.setText(String.valueOf(points));
+        profileContribCount.setText(String.valueOf(contribCount));
         badgeLevel.setText(GamificationHelper.getBadgeLevel(this, contribCount));
         badgeCount.setText(getString(R.string.contributions_count, contribCount));
         int target = GamificationHelper.getNextLevelTarget(contribCount);
         progressLabel.setText(getString(R.string.progress_fraction, contribCount, target));
         progressBar.setProgress(GamificationHelper.getProgressPercent(contribCount));
-
-        // Ranking: usuário atual + concorrentes (da API ou fallback)
-        buildLeaderboard(points, contribCount, profileRank);
-
-        // Histórico
-        buildHistory();
     }
 
-    private void buildLeaderboard(int points, int contribCount, TextView profileRank) {
-        final List<LeaderboardUser> list = new ArrayList<>();
-        list.add(new LeaderboardUser(session.getUserName(), points, contribCount,
-                session.getInitials(), true));
+    private void loadLeaderboard() {
+        ListView listLeaderboard = contentProfile.findViewById(R.id.listLeaderboard);
+        TextView profileRank = contentProfile.findViewById(R.id.profileRank);
 
         ApiClient.getApiService().getRanking().enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<List<LeaderboardUser>> call,
                                    @NonNull Response<List<LeaderboardUser>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    list.addAll(response.body());
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    listLeaderboard.setAdapter(new LeaderboardAdapter(MainActivity.this, response.body()));
                 } else {
-                    list.addAll(defaultCompetitors());
+                    renderLocalLeaderboard(listLeaderboard, profileRank);
                 }
-                renderLeaderboard(list, profileRank);
             }
 
             @Override
             public void onFailure(@NonNull Call<List<LeaderboardUser>> call, @NonNull Throwable t) {
-                list.addAll(defaultCompetitors());
-                renderLeaderboard(list, profileRank);
+                renderLocalLeaderboard(listLeaderboard, profileRank);
             }
         });
     }
@@ -498,7 +618,11 @@ public class MainActivity extends AppCompatActivity {
         return l;
     }
 
-    private void renderLeaderboard(List<LeaderboardUser> list, TextView profileRank) {
+    /** Ranking offline: usuário do cache local + concorrentes padrão. */
+    private void renderLocalLeaderboard(ListView listLeaderboard, TextView profileRank) {
+        List<LeaderboardUser> list = new ArrayList<>(defaultCompetitors());
+        list.add(new LeaderboardUser(session.getUserName(), db.sumPoints(),
+                db.countContributions(), session.getInitials(), true));
         list.sort((a, b) -> Integer.compare(b.getPoints(), a.getPoints()));
 
         int rank = 1;
@@ -509,16 +633,33 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         profileRank.setText(getString(R.string.profile_rank, rank));
-
-        ListView listLeaderboard = contentProfile.findViewById(R.id.listLeaderboard);
         listLeaderboard.setAdapter(new LeaderboardAdapter(this, list));
     }
 
-    private void buildHistory() {
-        List<Contribution> history = db.getAllContributions();
+    /** Histórico do backend, com sincronização do cache local (SQLite). */
+    private void loadHistory() {
+        ApiClient.getApiService().getUserContributions(session.getUserId()).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Contribution>> call,
+                                   @NonNull Response<List<Contribution>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    db.replaceContributions(response.body()); // espelha a nuvem no cache local
+                    renderHistory(response.body());
+                } else {
+                    renderHistory(db.getAllContributions()); // cache offline
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Contribution>> call, @NonNull Throwable t) {
+                renderHistory(db.getAllContributions());
+            }
+        });
+    }
+
+    private void renderHistory(List<Contribution> history) {
         ListView listHistory = contentProfile.findViewById(R.id.listHistory);
         TextView emptyHistory = contentProfile.findViewById(R.id.emptyHistory);
-
         if (history.isEmpty()) {
             emptyHistory.setVisibility(View.VISIBLE);
             listHistory.setAdapter(null);
@@ -526,8 +667,9 @@ public class MainActivity extends AppCompatActivity {
             emptyHistory.setVisibility(View.GONE);
             listHistory.setAdapter(new HistoryAdapter(this, history));
         }
+    }
 
-        // Logout
+    private void setupLogout() {
         Button btnLogout = contentProfile.findViewById(R.id.btnLogout);
         btnLogout.setOnClickListener(v -> new AlertDialog.Builder(MainActivity.this)
                 .setTitle(R.string.btn_logout)

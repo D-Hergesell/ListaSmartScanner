@@ -14,27 +14,30 @@ public class ContributionRequest {
     private Double price;   // Double (nullable) para não enviar 0 em QR
     private String date;    // "yyyy-MM-dd"
     private String rawData;
+    private String clientUuid; // chave de idempotência (gerada pelo app)
 
     public ContributionRequest() {
     }
 
     /** Atalho para contribuição manual. */
     public static ContributionRequest manual(String product, String market,
-                                             double price, String date) {
+                                             double price, String date, String clientUuid) {
         ContributionRequest r = new ContributionRequest();
         r.type = "manual";
         r.product = product;
         r.market = market;
         r.price = price;
         r.date = date;
+        r.clientUuid = clientUuid;
         return r;
     }
 
     /** Atalho para contribuição via QR. */
-    public static ContributionRequest qr(String rawData) {
+    public static ContributionRequest qr(String rawData, String clientUuid) {
         ContributionRequest r = new ContributionRequest();
         r.type = "qr";
         r.rawData = rawData;
+        r.clientUuid = clientUuid;
         return r;
     }
 
@@ -55,4 +58,7 @@ public class ContributionRequest {
 
     public String getRawData() { return rawData; }
     public void setRawData(String rawData) { this.rawData = rawData; }
+
+    public String getClientUuid() { return clientUuid; }
+    public void setClientUuid(String clientUuid) { this.clientUuid = clientUuid; }
 }
