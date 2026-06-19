@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -14,6 +15,7 @@
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_marginTop="12dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_qr" />
 
         <TextView
@@ -49,6 +51,7 @@
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_check" />
 
             <TextView
@@ -56,7 +59,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Cupom lido com sucesso! +10 pontos"
+                tools:text="Cupom lido com sucesso! +10 pontos"
                 android:textColor="@color/green_text"
                 android:textSize="13sp" />
         </LinearLayout>
@@ -72,6 +75,7 @@
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_gravity="center"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_camera_gray" />
         </FrameLayout>
 
@@ -103,7 +107,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Dados do Cupom:"
+                android:text="@string/scan_data_label"
                 android:textColor="@color/gray_500"
                 android:textSize="12sp"
                 android:textStyle="bold" />

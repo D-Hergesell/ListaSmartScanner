@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -29,7 +31,7 @@
                     android:layout_height="64dp"
                     android:background="@drawable/bg_avatar"
                     android:gravity="center"
-                    android:text="VC"
+                    tools:text="VC"
                     android:textColor="@color/indigo"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -45,7 +47,7 @@
                         android:id="@+id/profileName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Você"
+                        tools:text="Você"
                         android:textColor="@color/white"
                         android:textSize="22sp"
                         android:textStyle="bold" />
@@ -63,6 +65,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
+                android:baselineAligned="false"
                 android:orientation="horizontal">
 
                 <LinearLayout
@@ -76,7 +79,7 @@
                         android:id="@+id/profilePoints"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0"
+                        tools:text="0"
                         android:textColor="@color/white"
                         android:textSize="26sp"
                         android:textStyle="bold" />
@@ -100,7 +103,7 @@
                         android:id="@+id/profileContribCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0"
+                        tools:text="0"
                         android:textColor="@color/white"
                         android:textSize="26sp"
                         android:textStyle="bold" />
@@ -124,7 +127,7 @@
                         android:id="@+id/profileRank"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="#0"
+                        tools:text="#0"
                         android:textColor="@color/white"
                         android:textSize="26sp"
                         android:textStyle="bold" />
@@ -157,8 +160,9 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_award"
-                    android:tint="@color/indigo" />
+                    app:tint="@color/indigo" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -187,6 +191,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_trend" />
                 </FrameLayout>
 
@@ -201,7 +206,7 @@
                         android:id="@+id/badgeLevel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Iniciante"
+                        tools:text="Iniciante"
                         android:textColor="@color/gray_900"
                         android:textStyle="bold" />
 
@@ -220,7 +225,7 @@
                     android:background="@drawable/bg_badge"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
-                    android:text="0 contribuições"
+                    tools:text="0 contribuições"
                     android:textColor="@color/gray_600"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -243,7 +248,7 @@
                     android:id="@+id/progressLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0/5"
+                    tools:text="0/5"
                     android:textColor="@color/gray_900"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -278,6 +283,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_trophy" />
 
                 <TextView
@@ -317,6 +323,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_calendar" />
 
                 <TextView

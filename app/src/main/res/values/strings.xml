@@ -3,11 +3,17 @@
     <string name="app_name">Lista Smart</string>
     <string name="header_title">Leitor de Cupons</string>
 
+    <!-- Comuns -->
+    <string name="btn_ok">OK</string>
+    <string name="spinner_other">Outro</string>
+
     <!-- Login -->
     <string name="login_title">Bem-vindo</string>
     <string name="login_subtitle">Identifique-se para começar a colaborar</string>
     <string name="hint_name">Seu nome</string>
     <string name="btn_enter">Entrar</string>
+    <string name="error_required_title">Campo obrigatório</string>
+    <string name="error_name_required">Por favor, informe seu nome para continuar.</string>
 
     <!-- Tabs -->
     <string name="tab_scan">Escanear</string>
@@ -19,6 +25,12 @@
     <string name="scan_subtitle">Aponte a câmera para o QR Code do cupom fiscal</string>
     <string name="btn_start_camera">Iniciar Câmera</string>
     <string name="btn_cancel">Cancelar</string>
+    <string name="scan_success">Cupom lido com sucesso! +%d pontos</string>
+    <string name="scan_data_label">Dados do Cupom:</string>
+    <string name="error_invalid_read_title">Leitura inválida</string>
+    <string name="error_invalid_read_message">Não foi possível ler o conteúdo do QR Code. Tente novamente.</string>
+    <string name="toast_camera_denied">Permissão de câmera negada.</string>
+    <string name="toast_camera_error">Erro ao iniciar a câmera.</string>
 
     <!-- Manual -->
     <string name="manual_title">Cadastro Manual</string>
@@ -29,9 +41,21 @@
     <string name="label_date">Data da Compra *</string>
     <string name="hint_select_product">Selecione um produto</string>
     <string name="hint_select_market">Selecione um mercado</string>
+    <string name="hint_product_other">Digite o nome do produto</string>
+    <string name="hint_market_other">Digite o nome do mercado</string>
     <string name="hint_price">Ex: 10.50</string>
     <string name="manual_info">Certifique-se de que todos os dados estão corretos antes de enviar. Contribuições manuais valem 5 pontos.</string>
+    <string name="manual_success">Produto cadastrado com sucesso! +5 pontos</string>
     <string name="btn_register_product">Cadastrar Produto</string>
+    <string name="error_incomplete_title">Dados incompletos</string>
+    <string name="error_product_required">Selecione ou informe o produto.</string>
+    <string name="error_market_required">Selecione ou informe o mercado.</string>
+    <string name="error_price_required">Informe o preço do produto.</string>
+    <string name="error_price_invalid">Preço inválido. Use o formato 10.50.</string>
+    <string name="error_price_zero">O preço deve ser maior que zero.</string>
+    <string name="error_price_too_high">Preço muito alto. Verifique o valor informado.</string>
+    <string name="error_date_future">A data da compra não pode ser no futuro.</string>
+    <string name="toast_no_api">Sem conexão com a API. Usando catálogo local.</string>
 
     <!-- Profile -->
     <string name="profile_role">Colaborador Ativo</string>
@@ -45,4 +69,21 @@
     <string name="history_title">Histórico de Contribuições</string>
     <string name="empty_history">Nenhuma contribuição ainda.\nComece escaneando um cupom ou adicionando preços manualmente!</string>
     <string name="btn_logout">Sair</string>
+    <string name="logout_confirm_message">Deseja encerrar a sessão?</string>
+
+    <!-- Perfil / histórico / ranking (formatados) -->
+    <string name="label_points_caption">pontos</string>
+    <string name="contributions_count">%d contribuições</string>
+    <string name="progress_fraction">%1$d/%2$d</string>
+    <string name="profile_rank">#%d</string>
+    <string name="hist_qr_title">Leitura de QR Code</string>
+    <string name="hist_manual_title">Cadastro Manual</string>
+    <string name="hist_manual_detail">%1$s - %2$s · R$ %3$.2f</string>
+    <string name="hist_points">+%d pts</string>
+
+    <!-- Gamificação: selo de confiabilidade -->
+    <string name="badge_gold">Ouro</string>
+    <string name="badge_silver">Prata</string>
+    <string name="badge_bronze">Bronze</string>
+    <string name="badge_beginner">Iniciante</string>
 </resources>

@@ -63,7 +63,7 @@ public class LeaderboardAdapter extends BaseAdapter {
         position_.setText(String.valueOf(position + 1));
         avatar.setText(user.getAvatar());
         name.setText(user.getName());
-        contribs.setText(user.getContributions() + " contribuições");
+        contribs.setText(context.getString(R.string.contributions_count, user.getContributions()));
         points.setText(String.valueOf(user.getPoints()));
 
         // Destaque visual para o usuário atual

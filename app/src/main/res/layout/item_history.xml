@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:baselineAligned="false"
     android:gravity="top"
     android:orientation="horizontal"
     android:paddingVertical="10dp">
@@ -17,6 +19,7 @@
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:layout_gravity="center"
+            android:contentDescription="@null"
             android:src="@drawable/ic_edit" />
     </FrameLayout>
 
@@ -37,7 +40,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Cadastro Manual"
+                tools:text="Cadastro Manual"
                 android:textColor="@color/gray_900"
                 android:textStyle="bold" />
 
@@ -48,7 +51,7 @@
                 android:background="@drawable/bg_badge"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp"
-                android:text="+5 pts"
+                tools:text="+5 pts"
                 android:textColor="@color/gray_600"
                 android:textSize="11sp" />
         </LinearLayout>

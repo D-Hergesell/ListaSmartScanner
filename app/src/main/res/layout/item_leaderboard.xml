@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rowRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -15,7 +16,7 @@
         android:layout_height="32dp"
         android:background="@drawable/bg_rank_circle"
         android:gravity="center"
-        android:text="1"
+        tools:text="1"
         android:textColor="@color/white"
         android:textSize="13sp"
         android:textStyle="bold" />
@@ -27,7 +28,7 @@
         android:layout_marginStart="10dp"
         android:background="@drawable/bg_avatar_gray"
         android:gravity="center"
-        android:text="CS"
+        tools:text="CS"
         android:textColor="@color/gray_800"
         android:textSize="13sp"
         android:textStyle="bold" />
@@ -43,7 +44,7 @@
             android:id="@+id/rankName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Carlos Silva"
+            tools:text="Carlos Silva"
             android:textColor="@color/gray_900"
             android:textStyle="bold" />
 
@@ -51,7 +52,7 @@
             android:id="@+id/rankContribs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="45 contribuições"
+            tools:text="45 contribuições"
             android:textColor="@color/gray_600"
             android:textSize="12sp" />
     </LinearLayout>
@@ -66,14 +67,14 @@
             android:id="@+id/rankPoints"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="450"
+            tools:text="450"
             android:textColor="@color/indigo"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="pontos"
+            android:text="@string/label_points_caption"
             android:textColor="@color/gray_600"
             android:textSize="12sp" />
     </LinearLayout>

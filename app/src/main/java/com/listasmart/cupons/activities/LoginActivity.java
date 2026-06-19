@@ -2,7 +2,6 @@ package com.listasmart.cupons.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -36,24 +35,21 @@ public class LoginActivity extends AppCompatActivity {
         final EditText inputName = findViewById(R.id.inputName);
         Button btnEnter = findViewById(R.id.btnEnter);
 
-        btnEnter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = inputName.getText().toString().trim();
+        btnEnter.setOnClickListener(v -> {
+            String name = inputName.getText().toString().trim();
 
-                // Validação de campo + AlertDialog de feedback.
-                if (name.isEmpty()) {
-                    new AlertDialog.Builder(LoginActivity.this)
-                            .setTitle("Campo obrigatório")
-                            .setMessage("Por favor, informe seu nome para continuar.")
-                            .setPositiveButton("OK", null)
-                            .show();
-                    return;
-                }
-
-                session.login(name);
-                goToMain();
+            // Validação de campo + AlertDialog de feedback.
+            if (name.isEmpty()) {
+                new AlertDialog.Builder(LoginActivity.this)
+                        .setTitle(R.string.error_required_title)
+                        .setMessage(R.string.error_name_required)
+                        .setPositiveButton(R.string.btn_ok, null)
+                        .show();
+                return;
             }
+
+            session.login(name);
+            goToMain();
         });
     }
 

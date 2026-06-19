@@ -8,6 +8,13 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
+    <!--
+        Para testar contra um backend LOCAL via http:// (ex.: API_BASE_URL=http://10.0.2.2:8080/)
+        é preciso permitir tráfego em texto puro. NÃO deixe isto ligado em produção (use só https).
+        Para habilitar apenas em debug, crie app/src/debug/AndroidManifest.xml com:
+            android:usesCleartextTraffic="true"
+        Em produção (Render) a URL é https, então nada precisa ser alterado aqui.
+    -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

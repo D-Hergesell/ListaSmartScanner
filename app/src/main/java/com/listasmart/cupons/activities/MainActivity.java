@@ -7,8 +7,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -18,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -37,8 +36,6 @@ import com.listasmart.cupons.network.ApiClient;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -62,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     // Tabs (bottom nav)
     private LinearLayout tabScan, tabManual, tabProfile;
     private TextView tabScanLabel, tabManualLabel, tabProfileLabel;
-    private ImageView tabScanIcon, tabManualIcon, tabProfileIcon;
 
     // Aba manual
     private Spinner spinnerProduct, spinnerMarket;
@@ -75,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout scanSuccessAlert, scanResultBox;
     private TextView scanResultData, scanSuccessText;
 
-    private static final String OTHER = "Outro";
+    // Valor da opção "Outro" nos spinners (carregado de strings.xml em onCreate)
+    private String other;
 
     // Launcher do scanner (recebe o resultado do QR)
     private final ActivityResultLauncher<Intent> scannerLauncher =
@@ -94,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
         db = new DBHelper(this);
         session = new SessionManager(this);
+        other = getString(R.string.spinner_other);
 
         bindViews();
         setupTabs();
@@ -175,9 +173,9 @@ public class MainActivity extends AppCompatActivity {
     private void onQrScanned(String rawValue) {
         if (rawValue == null || rawValue.trim().isEmpty()) {
             new AlertDialog.Builder(this)
-                    .setTitle("Leitura inválida")
-                    .setMessage("Não foi possível ler o conteúdo do QR Code. Tente novamente.")
-                    .setPositiveButton("OK", null)
+                    .setTitle(R.string.error_invalid_read_title)
+                    .setMessage(R.string.error_invalid_read_message)
+                    .setPositiveButton(R.string.btn_ok, null)
                     .show();
             return;
         }
@@ -193,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         // Feedback visual
         scanResultData.setText(rawValue.trim());
         scanResultBox.setVisibility(View.VISIBLE);
-        scanSuccessText.setText("Cupom lido com sucesso! +" + GamificationHelper.POINTS_QR + " pontos");
+        scanSuccessText.setText(getString(R.string.scan_success, GamificationHelper.POINTS_QR));
         scanSuccessAlert.setVisibility(View.VISIBLE);
         scanSuccessAlert.startAnimation(android.view.animation.AnimationUtils
                 .loadAnimation(this, android.R.anim.fade_in));
@@ -221,13 +219,13 @@ public class MainActivity extends AppCompatActivity {
         spinnerProduct.setOnItemSelectedListener(new SimpleItemSelected() {
             @Override
             public void onSelected(String value) {
-                inputProductOther.setVisibility(OTHER.equals(value) ? View.VISIBLE : View.GONE);
+                inputProductOther.setVisibility(other.equals(value) ? View.VISIBLE : View.GONE);
             }
         });
         spinnerMarket.setOnItemSelectedListener(new SimpleItemSelected() {
             @Override
             public void onSelected(String value) {
-                inputMarketOther.setVisibility(OTHER.equals(value) ? View.VISIBLE : View.GONE);
+                inputMarketOther.setVisibility(other.equals(value) ? View.VISIBLE : View.GONE);
             }
         });
 
@@ -253,27 +251,27 @@ public class MainActivity extends AppCompatActivity {
     private void submitManual() {
         // Resolve produto
         String product = String.valueOf(spinnerProduct.getSelectedItem());
-        if (OTHER.equals(product)) {
+        if (other.equals(product)) {
             product = inputProductOther.getText().toString().trim();
         }
         // Resolve mercado
         String market = String.valueOf(spinnerMarket.getSelectedItem());
-        if (OTHER.equals(market)) {
+        if (other.equals(market)) {
             market = inputMarketOther.getText().toString().trim();
         }
         String priceStr = inputPrice.getText().toString().trim().replace(",", ".");
 
         // Validações de campo
         if (product.isEmpty() || product.equals("null")) {
-            showError("Selecione ou informe o produto.");
+            showError(getString(R.string.error_product_required));
             return;
         }
         if (market.isEmpty() || market.equals("null")) {
-            showError("Selecione ou informe o mercado.");
+            showError(getString(R.string.error_market_required));
             return;
         }
         if (priceStr.isEmpty()) {
-            showError("Informe o preço do produto.");
+            showError(getString(R.string.error_price_required));
             return;
         }
 
@@ -281,24 +279,24 @@ public class MainActivity extends AppCompatActivity {
         try {
             price = Double.parseDouble(priceStr);
         } catch (NumberFormatException e) {
-            showError("Preço inválido. Use o formato 10.50.");
+            showError(getString(R.string.error_price_invalid));
             return;
         }
 
         // Validação básica para evitar dados incoerentes
         if (price <= 0) {
-            showError("O preço deve ser maior que zero.");
+            showError(getString(R.string.error_price_zero));
             return;
         }
         if (price > 100000) {
-            showError("Preço muito alto. Verifique o valor informado.");
+            showError(getString(R.string.error_price_too_high));
             return;
         }
 
         Date selected = DateHelper.parseIso(selectedDateIso);
         Date today = new Date();
         if (selected == null || selected.after(today)) {
-            showError("A data da compra não pode ser no futuro.");
+            showError(getString(R.string.error_date_future));
             return;
         }
 
@@ -341,9 +339,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void showError(String message) {
         new AlertDialog.Builder(this)
-                .setTitle("Dados incompletos")
+                .setTitle(R.string.error_incomplete_title)
                 .setMessage(message)
-                .setPositiveButton("OK", null)
+                .setPositiveButton(R.string.btn_ok, null)
                 .show();
     }
 
@@ -361,9 +359,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchProductsFromApi() {
-        ApiClient.getApiService().getProducts().enqueue(new Callback<List<Product>>() {
+        ApiClient.getApiService().getProducts().enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
+            public void onResponse(@NonNull Call<List<Product>> call, @NonNull Response<List<Product>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     db.replaceProducts(response.body());
                 }
@@ -371,20 +369,20 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Product>> call, Throwable t) {
+            public void onFailure(@NonNull Call<List<Product>> call, @NonNull Throwable t) {
                 // Sem internet/API: cai para um catálogo padrão local.
                 seedDefaultCatalog();
                 fillSpinnersFromDb();
                 Toast.makeText(MainActivity.this,
-                        "Sem conexão com a API. Usando catálogo local.", Toast.LENGTH_SHORT).show();
+                        R.string.toast_no_api, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void fetchMarketsFromApi() {
-        ApiClient.getApiService().getMarkets().enqueue(new Callback<List<Market>>() {
+        ApiClient.getApiService().getMarkets().enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<List<Market>> call, Response<List<Market>> response) {
+            public void onResponse(@NonNull Call<List<Market>> call, @NonNull Response<List<Market>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     db.replaceMarkets(response.body());
                 }
@@ -392,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Market>> call, Throwable t) {
+            public void onFailure(@NonNull Call<List<Market>> call, @NonNull Throwable t) {
                 seedDefaultCatalog();
                 fillSpinnersFromDb();
             }
@@ -415,11 +413,11 @@ public class MainActivity extends AppCompatActivity {
     private void fillSpinnersFromDb() {
         List<String> productNames = new ArrayList<>();
         for (Product p : db.getAllProducts()) productNames.add(p.getName());
-        productNames.add(OTHER);
+        productNames.add(other);
 
         List<String> marketNames = new ArrayList<>();
         for (Market m : db.getAllMarkets()) marketNames.add(m.getName());
-        marketNames.add(OTHER);
+        marketNames.add(other);
 
         spinnerProduct.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, productNames));
@@ -452,10 +450,10 @@ public class MainActivity extends AppCompatActivity {
         TextView progressLabel = contentProfile.findViewById(R.id.progressLabel);
         ProgressBar progressBar = contentProfile.findViewById(R.id.progressBar);
 
-        badgeLevel.setText(GamificationHelper.getBadgeLevel(contribCount));
-        badgeCount.setText(contribCount + " contribuições");
+        badgeLevel.setText(GamificationHelper.getBadgeLevel(this, contribCount));
+        badgeCount.setText(getString(R.string.contributions_count, contribCount));
         int target = GamificationHelper.getNextLevelTarget(contribCount);
-        progressLabel.setText(contribCount + "/" + target);
+        progressLabel.setText(getString(R.string.progress_fraction, contribCount, target));
         progressBar.setProgress(GamificationHelper.getProgressPercent(contribCount));
 
         // Ranking: usuário atual + concorrentes (da API ou fallback)
@@ -470,10 +468,10 @@ public class MainActivity extends AppCompatActivity {
         list.add(new LeaderboardUser(session.getUserName(), points, contribCount,
                 session.getInitials(), true));
 
-        ApiClient.getApiService().getRanking().enqueue(new Callback<List<LeaderboardUser>>() {
+        ApiClient.getApiService().getRanking().enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<List<LeaderboardUser>> call,
-                                   Response<List<LeaderboardUser>> response) {
+            public void onResponse(@NonNull Call<List<LeaderboardUser>> call,
+                                   @NonNull Response<List<LeaderboardUser>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     list.addAll(response.body());
                 } else {
@@ -483,7 +481,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<LeaderboardUser>> call, Throwable t) {
+            public void onFailure(@NonNull Call<List<LeaderboardUser>> call, @NonNull Throwable t) {
                 list.addAll(defaultCompetitors());
                 renderLeaderboard(list, profileRank);
             }
@@ -501,12 +499,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderLeaderboard(List<LeaderboardUser> list, TextView profileRank) {
-        Collections.sort(list, new Comparator<LeaderboardUser>() {
-            @Override
-            public int compare(LeaderboardUser a, LeaderboardUser b) {
-                return Integer.compare(b.getPoints(), a.getPoints());
-            }
-        });
+        list.sort((a, b) -> Integer.compare(b.getPoints(), a.getPoints()));
 
         int rank = 1;
         for (int i = 0; i < list.size(); i++) {
@@ -515,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
-        profileRank.setText("#" + rank);
+        profileRank.setText(getString(R.string.profile_rank, rank));
 
         ListView listLeaderboard = contentProfile.findViewById(R.id.listLeaderboard);
         listLeaderboard.setAdapter(new LeaderboardAdapter(this, list));
@@ -537,16 +530,16 @@ public class MainActivity extends AppCompatActivity {
         // Logout
         Button btnLogout = contentProfile.findViewById(R.id.btnLogout);
         btnLogout.setOnClickListener(v -> new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Sair")
-                .setMessage("Deseja encerrar a sessão?")
-                .setPositiveButton("Sair", (d, w) -> {
+                .setTitle(R.string.btn_logout)
+                .setMessage(R.string.logout_confirm_message)
+                .setPositiveButton(R.string.btn_logout, (d, w) -> {
                     session.logout();
                     Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
                 })
-                .setNegativeButton("Cancelar", null)
+                .setNegativeButton(R.string.btn_cancel, null)
                 .show());
     }
 

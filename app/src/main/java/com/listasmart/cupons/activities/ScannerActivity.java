@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Size;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -16,6 +15,8 @@ import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
+import androidx.camera.core.resolutionselector.ResolutionSelector;
+import androidx.camera.core.resolutionselector.ResolutionStrategy;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
@@ -55,12 +56,9 @@ public class ScannerActivity extends AppCompatActivity {
 
         previewView = findViewById(R.id.previewView);
         Button btnCancel = findViewById(R.id.btnCancelScan);
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setResult(RESULT_CANCELED);
-                finish();
-            }
+        btnCancel.setOnClickListener(v -> {
+            setResult(RESULT_CANCELED);
+            finish();
         });
 
         cameraExecutor = Executors.newSingleThreadExecutor();
@@ -87,7 +85,7 @@ public class ScannerActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startCamera();
             } else {
-                Toast.makeText(this, "Permissão de câmera negada.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.toast_camera_denied, Toast.LENGTH_LONG).show();
                 setResult(RESULT_CANCELED);
                 finish();
             }
@@ -98,37 +96,42 @@ public class ScannerActivity extends AppCompatActivity {
         final ListenableFuture<ProcessCameraProvider> future =
                 ProcessCameraProvider.getInstance(this);
 
-        future.addListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ProcessCameraProvider provider = future.get();
+        future.addListener(() -> {
+            try {
+                ProcessCameraProvider provider = future.get();
 
-                    Preview preview = new Preview.Builder().build();
-                    preview.setSurfaceProvider(previewView.getSurfaceProvider());
+                Preview preview = new Preview.Builder().build();
+                preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                    ImageAnalysis analysis = new ImageAnalysis.Builder()
-                            .setTargetResolution(new Size(1280, 720))
-                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                            .build();
+                // ResolutionSelector substitui o antigo setTargetResolution (deprecado):
+                // pede ~1280x720, caindo para a resolucao mais proxima disponivel.
+                ResolutionSelector resolutionSelector = new ResolutionSelector.Builder()
+                        .setResolutionStrategy(new ResolutionStrategy(
+                                new Size(1280, 720),
+                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
+                        .build();
 
-                    analysis.setAnalyzer(cameraExecutor, new ImageAnalysis.Analyzer() {
-                        @Override
-                        @OptIn(markerClass = ExperimentalGetImage.class)
-                        public void analyze(@NonNull ImageProxy imageProxy) {
-                            processImage(imageProxy);
-                        }
-                    });
+                ImageAnalysis analysis = new ImageAnalysis.Builder()
+                        .setResolutionSelector(resolutionSelector)
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
 
-                    provider.unbindAll();
-                    provider.bindToLifecycle(ScannerActivity.this,
-                            CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis);
+                analysis.setAnalyzer(cameraExecutor, new ImageAnalysis.Analyzer() {
+                    @Override
+                    @OptIn(markerClass = ExperimentalGetImage.class)
+                    public void analyze(@NonNull ImageProxy imageProxy) {
+                        processImage(imageProxy);
+                    }
+                });
 
-                } catch (Exception e) {
-                    Toast.makeText(ScannerActivity.this,
-                            "Erro ao iniciar a câmera.", Toast.LENGTH_LONG).show();
-                    finish();
-                }
+                provider.unbindAll();
+                provider.bindToLifecycle(ScannerActivity.this,
+                        CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis);
+
+            } catch (Exception e) {
+                Toast.makeText(ScannerActivity.this,
+                        R.string.toast_camera_error, Toast.LENGTH_LONG).show();
+                finish();
             }
         }, ContextCompat.getMainExecutor(this));
     }

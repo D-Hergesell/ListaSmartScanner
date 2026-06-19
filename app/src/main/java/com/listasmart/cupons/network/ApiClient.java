@@ -2,6 +2,8 @@ package com.listasmart.cupons.network;
 
 import androidx.annotation.Nullable;
 
+import com.listasmart.cupons.BuildConfig;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -14,10 +16,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class ApiClient {
 
-    // Backend Lista Smart. Em produção, a URL pública do Render
-    // (ex.: https://lista-smart-api.onrender.com/). Mantenha a barra final.
-    // Para emulador acessando um backend local use http://10.0.2.2:8080/
-    public static final String BASE_URL = "https://lista-smart-api.onrender.com/";
+    // URL do backend NÃO é mais hardcoded aqui: vem de BuildConfig.BASE_URL,
+    // que é definido em app/build.gradle a partir de local.properties (API_BASE_URL).
+    // Para trocar de ambiente, edite local.properties — nunca este arquivo.
+    public static final String BASE_URL = BuildConfig.BASE_URL;
 
     /** Token JWT da sessão atual; definido pelo SessionManager. */
     @Nullable

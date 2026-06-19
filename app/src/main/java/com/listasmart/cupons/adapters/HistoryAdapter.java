@@ -14,7 +14,6 @@ import com.listasmart.cupons.helpers.DateHelper;
 import com.listasmart.cupons.models.Contribution;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Adapter do histórico de contribuições (ListView da tela de Perfil).
@@ -66,19 +65,19 @@ public class HistoryAdapter extends BaseAdapter {
         if (isQr) {
             iconBox.setBackgroundResource(R.drawable.bg_icon_green);
             icon.setImageResource(R.drawable.ic_qr);
-            title.setText("Leitura de QR Code");
+            title.setText(R.string.hist_qr_title);
             detail.setVisibility(c.getRawData() != null ? View.VISIBLE : View.GONE);
             detail.setText(c.getRawData());
         } else {
             iconBox.setBackgroundResource(R.drawable.bg_icon_blue);
             icon.setImageResource(R.drawable.ic_edit);
-            title.setText("Cadastro Manual");
+            title.setText(R.string.hist_manual_title);
             detail.setVisibility(View.VISIBLE);
-            detail.setText(String.format(Locale.getDefault(),
-                    "%s - %s · R$ %.2f", c.getProduct(), c.getMarket(), c.getPrice()));
+            detail.setText(context.getString(R.string.hist_manual_detail,
+                    c.getProduct(), c.getMarket(), c.getPrice()));
         }
 
-        points.setText(String.format(Locale.getDefault(), "+%d pts", c.getPoints()));
+        points.setText(context.getString(R.string.hist_points, c.getPoints()));
         date.setText(DateHelper.formatTimestamp(c.getSubmittedAt()));
 
         return convertView;
