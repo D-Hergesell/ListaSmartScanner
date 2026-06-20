@@ -20,6 +20,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.gson.Gson;
 import com.listasmart.cupons.R;
@@ -73,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
     // Aba scan
     private LinearLayout scanSuccessAlert, scanResultBox;
     private TextView scanResultData, scanSuccessText;
+
+    // Pull-to-refresh do Perfil
+    private SwipeRefreshLayout profileSwipeRefresh;
 
     // Valor da opção "Outro" nos spinners (carregado de strings.xml em onCreate)
     private String other;
@@ -684,6 +688,9 @@ public class MainActivity extends AppCompatActivity {
     private void renderHistory(List<Contribution> history) {
         fullHistory = history;
 
+        // Encerra o spinner do pull-to-refresh (o histórico é a última carga visível).
+        if (profileSwipeRefresh != null) profileSwipeRefresh.setRefreshing(false);
+
         LinearLayout container = contentProfile.findViewById(R.id.historyContainer);
         TextView emptyHistory = contentProfile.findViewById(R.id.emptyHistory);
         Button seeAll = contentProfile.findViewById(R.id.btnSeeAllHistory);
@@ -716,6 +723,46 @@ public class MainActivity extends AppCompatActivity {
         Button seeAllHistory = contentProfile.findViewById(R.id.btnSeeAllHistory);
         seeFullRanking.setOnClickListener(v -> openFullRanking());
         seeAllHistory.setOnClickListener(v -> openFullHistory());
+
+        // Pull-to-refresh: a raiz incluída do perfil é o SwipeRefreshLayout.
+        profileSwipeRefresh = (SwipeRefreshLayout) contentProfile;
+        profileSwipeRefresh.setColorSchemeResources(R.color.indigo);
+        profileSwipeRefresh.setOnRefreshListener(this::refreshProfileWithFlush);
+    }
+
+    /**
+     * Pull-to-refresh do Perfil: primeiro reenvia a fila offline (outbox) e, só
+     * quando todas as pendências forem processadas, recarrega os dados da nuvem.
+     * Assim, contribuições feitas offline aparecem na mesma atualização, sem
+     * precisar reabrir o app. O spinner é encerrado ao fim do recarregamento
+     * do histórico (ver {@link #renderHistory(java.util.List)}).
+     */
+    private void refreshProfileWithFlush() {
+        List<OutboxEntry> pending = db.getOutbox();
+        if (pending.isEmpty()) {
+            refreshProfile();
+            return;
+        }
+        final int[] remaining = {pending.size()};
+        for (OutboxEntry entry : pending) {
+            ApiClient.getApiService().createContribution(entry.toRequest()).enqueue(new Callback<>() {
+                @Override
+                public void onResponse(@NonNull Call<List<Contribution>> call,
+                                       @NonNull Response<List<Contribution>> response) {
+                    db.deleteOutbox(entry.getId()); // servidor respondeu: sai da fila
+                    onOneSettled();
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<Contribution>> call, @NonNull Throwable t) {
+                    onOneSettled(); // sem conexão: permanece na fila para retry
+                }
+
+                private void onOneSettled() {
+                    if (--remaining[0] == 0) refreshProfile();
+                }
+            });
+        }
     }
 
     private void openFullRanking() {
