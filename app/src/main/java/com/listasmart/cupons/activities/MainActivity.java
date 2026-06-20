@@ -27,7 +27,6 @@ import com.listasmart.cupons.adapters.HistoryAdapter;
 import com.listasmart.cupons.adapters.LeaderboardAdapter;
 import com.listasmart.cupons.database.DBHelper;
 import com.listasmart.cupons.helpers.DateHelper;
-import com.listasmart.cupons.helpers.GamificationHelper;
 import com.listasmart.cupons.helpers.SessionManager;
 import com.listasmart.cupons.models.Contribution;
 import com.listasmart.cupons.models.LeaderboardUser;
@@ -486,8 +485,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<List<Product>> call, @NonNull Throwable t) {
-                // Sem internet/API: cai para um catálogo padrão local.
-                seedDefaultCatalog();
+                // Sem internet/API: usa o cache local (se houver) e avisa.
                 fillSpinnersFromDb();
                 Toast.makeText(MainActivity.this,
                         R.string.toast_no_api, Toast.LENGTH_SHORT).show();
@@ -507,23 +505,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<List<Market>> call, @NonNull Throwable t) {
-                seedDefaultCatalog();
                 fillSpinnersFromDb();
             }
         });
-    }
-
-    /** Catálogo padrão (fallback) gravado no SQLite quando a API não responde. */
-    private void seedDefaultCatalog() {
-        List<Product> products = new ArrayList<>();
-        String[] p = {"Arroz", "Feijão", "Açúcar", "Café", "Óleo", "Leite", "Pão", "Carne", "Frango", "Ovos"};
-        for (int i = 0; i < p.length; i++) products.add(new Product(String.valueOf(i + 1), p[i]));
-        db.replaceProducts(products);
-
-        List<Market> markets = new ArrayList<>();
-        String[] m = {"Carrefour", "Pão de Açúcar", "Extra", "Dia Supermercado", "Atacadão", "Assaí"};
-        for (int i = 0; i < m.length; i++) markets.add(new Market(String.valueOf(i + 1), m[i]));
-        db.replaceMarkets(markets);
     }
 
     private void fillSpinnersFromDb() {
@@ -555,20 +539,20 @@ public class MainActivity extends AppCompatActivity {
         setupLogout();
 
         // Pontos/contagem/ranking/selo vêm do backend (fonte da verdade).
-        // Sem rede ou sem sessão válida, cai para o cache local (SQLite).
+        // Sem rede ou sem sessão válida, exibe estado indisponível.
         ApiClient.getApiService().getMe().enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<UserMe> call, @NonNull Response<UserMe> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     renderProfileFromCloud(response.body());
                 } else {
-                    renderProfileFromLocalCache();
+                    showProfileOffline();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<UserMe> call, @NonNull Throwable t) {
-                renderProfileFromLocalCache();
+                showProfileOffline();
             }
         });
 
@@ -604,25 +588,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Fallback offline: usa o cache do SQLite + gamificação local. */
-    private void renderProfileFromLocalCache() {
-        int points = db.sumPoints();
-        int contribCount = db.countContributions();
-
-        TextView profilePoints = contentProfile.findViewById(R.id.profilePoints);
-        TextView profileContribCount = contentProfile.findViewById(R.id.profileContribCount);
-        TextView badgeLevel = contentProfile.findViewById(R.id.badgeLevel);
-        TextView badgeCount = contentProfile.findViewById(R.id.badgeCount);
-        TextView progressLabel = contentProfile.findViewById(R.id.progressLabel);
-        ProgressBar progressBar = contentProfile.findViewById(R.id.progressBar);
-
-        profilePoints.setText(String.valueOf(points));
-        profileContribCount.setText(String.valueOf(contribCount));
-        badgeLevel.setText(GamificationHelper.getBadgeLevel(this, contribCount));
-        badgeCount.setText(getString(R.string.contributions_count, contribCount));
-        int target = GamificationHelper.getNextLevelTarget(contribCount);
-        progressLabel.setText(getString(R.string.progress_fraction, contribCount, target));
-        progressBar.setProgress(GamificationHelper.getProgressPercent(contribCount));
+    /**
+     * Sem conexão / sessão inválida: não exibe dados de gamificação (o backend
+     * é a fonte da verdade). Mostra um indicador de indisponível e avisa.
+     */
+    private void showProfileOffline() {
+        ((TextView) contentProfile.findViewById(R.id.profilePoints)).setText(R.string.placeholder_dash);
+        ((TextView) contentProfile.findViewById(R.id.profileContribCount)).setText(R.string.placeholder_dash);
+        ((TextView) contentProfile.findViewById(R.id.profileRank)).setText(R.string.placeholder_dash);
+        Toast.makeText(this, R.string.error_network, Toast.LENGTH_SHORT).show();
     }
 
     private void loadLeaderboard() {
@@ -633,44 +607,15 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     renderLeaderboardPreview(response.body());
                 } else {
-                    renderLocalLeaderboard();
+                    renderLeaderboardPreview(new ArrayList<>()); // sem ranking disponível
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<LeaderboardUser>> call, @NonNull Throwable t) {
-                renderLocalLeaderboard();
+                renderLeaderboardPreview(new ArrayList<>()); // sem conexão: ranking vazio
             }
         });
-    }
-
-    private List<LeaderboardUser> defaultCompetitors() {
-        List<LeaderboardUser> l = new ArrayList<>();
-        l.add(new LeaderboardUser("Carlos Silva", 450, 45, "CS", false));
-        l.add(new LeaderboardUser("Maria Santos", 380, 38, "MS", false));
-        l.add(new LeaderboardUser("João Oliveira", 320, 32, "JO", false));
-        l.add(new LeaderboardUser("Ana Costa", 210, 21, "AC", false));
-        l.add(new LeaderboardUser("Pedro Lima", 180, 18, "PL", false));
-        return l;
-    }
-
-    /** Ranking offline: usuário do cache local + concorrentes padrão. */
-    private void renderLocalLeaderboard() {
-        List<LeaderboardUser> list = new ArrayList<>(defaultCompetitors());
-        list.add(new LeaderboardUser(session.getUserName(), db.sumPoints(),
-                db.countContributions(), session.getInitials(), true));
-        list.sort((a, b) -> Integer.compare(b.getPoints(), a.getPoints()));
-
-        int rank = 1;
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).isCurrentUser()) {
-                rank = i + 1;
-                break;
-            }
-        }
-        TextView profileRank = contentProfile.findViewById(R.id.profileRank);
-        profileRank.setText(getString(R.string.profile_rank, rank));
-        renderLeaderboardPreview(list);
     }
 
     /**

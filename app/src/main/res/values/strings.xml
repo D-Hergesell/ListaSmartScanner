@@ -6,6 +6,7 @@
     <!-- Comuns -->
     <string name="btn_ok">OK</string>
     <string name="spinner_other">Outro</string>
+    <string name="placeholder_dash">—</string>
 
     <!-- Login -->
     <string name="login_title">Bem-vindo</string>

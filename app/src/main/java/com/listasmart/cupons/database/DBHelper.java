@@ -25,8 +25,8 @@ import java.util.List;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "lista_smart.db";
-    // v2: tabela outbox (fila offline com chave de idempotência).
-    private static final int DB_VERSION = 2;
+    // v4: fila offline (outbox) com chave de idempotência (reenvio ao reconectar).
+    private static final int DB_VERSION = 4;
 
     // Tabela de contribuições
     public static final String T_CONTRIB = "contributions";

@@ -2,7 +2,8 @@
 
 Leitura de cupom fiscal (QR) e cadastro colaborativo de preços, com pontuação,
 ranking e selo de confiabilidade. Consome a **API Lista Smart** (Spring Boot +
-NeonDB): o backend é a fonte da verdade e o SQLite funciona como cache offline.
+NeonDB): o backend é a fonte da verdade e o SQLite funciona como cache de leitura
+(catálogo e histórico) e fila offline (outbox) para envios sem conexão.
 
 ## Stack
 Java 17 · Layouts XML · Gradle (Groovy) · Retrofit · SQLite · SharedPreferences · CameraX + ML Kit (QR)
@@ -19,17 +20,17 @@ Java 17 · Layouts XML · Gradle (Groovy) · Retrofit · SQLite · SharedPrefere
 ## Arquitetura
 ```
 com.listasmart.cupons
-├── activities/   Login, Main (3 abas), Scanner
+├── activities/   Login, Main (3 abas), Scanner, Ranking, History
 ├── adapters/     Leaderboard, History (ListView)
 ├── database/     DBHelper (cache SQLite + fila offline)
 ├── network/      ApiClient (Retrofit + JWT), ApiService
-├── helpers/      Session, Gamification, Date
+├── helpers/      Session, Date
 └── models/       Contribution, Product, Market, LeaderboardUser, UserMe, OutboxEntry
 ```
 
 ## Sincronização (online + offline)
 - **Auth:** login/registro no backend guardam o **JWT** (`SessionManager`), enviado em todas as chamadas.
-- **Escrita:** criar contribuição (QR/manual) envia ao backend; perfil, ranking e histórico vêm da nuvem (cache local para leitura offline).
+- **Escrita:** criar contribuição (QR/manual) envia ao backend; perfil, ranking e histórico vêm da nuvem (cache local para leitura).
 - **Fila offline (outbox):** sem rede, a contribuição é guardada e reenviada ao reconectar.
 - **Idempotência:** cada envio leva um `clientUuid`; reenvios nunca duplicam (o servidor deduplica).
 
