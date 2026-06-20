@@ -209,7 +209,9 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(List<Contribution> created) {
                 int gained = 0;
                 for (Contribution c : created) gained += c.getPoints();
-                scanResultData.setText(raw);
+                // Mostra os dados legíveis do cupom (produto, mercado, preço e
+                // data da compra) por item, em vez do link bruto do SEFAZ.
+                scanResultData.setText(formatScanResult(created));
                 scanResultBox.setVisibility(View.VISIBLE);
                 scanSuccessText.setText(getString(R.string.scan_success, gained));
                 scanSuccessAlert.setVisibility(View.VISIBLE);
@@ -222,6 +224,24 @@ public class MainActivity extends AppCompatActivity {
                 showQueuedOffline();
             }
         });
+    }
+
+    /**
+     * Monta os dados legíveis do cupom (uma linha por item): produto, mercado,
+     * preço e data da compra — as mesmas informações de um cadastro manual.
+     */
+    private String formatScanResult(List<Contribution> created) {
+        StringBuilder sb = new StringBuilder();
+        for (Contribution c : created) {
+            if (sb.length() > 0) sb.append("\n");
+            sb.append(getString(R.string.hist_manual_detail,
+                    c.getProduct(), c.getMarket(), c.getPrice()));
+            if (c.getDate() != null && !c.getDate().isEmpty()) {
+                sb.append("\n").append(getString(R.string.hist_purchase_date,
+                        DateHelper.formatDate(c.getDate())));
+            }
+        }
+        return sb.toString();
     }
 
     private void showReadError() {

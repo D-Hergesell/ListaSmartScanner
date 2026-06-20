@@ -87,6 +87,8 @@
     <string name="hist_qr_title">Leitura de QR Code</string>
     <string name="hist_manual_title">Cadastro Manual</string>
     <string name="hist_manual_detail">%1$s - %2$s · R$ %3$.2f</string>
+    <string name="hist_purchase_date">Compra em %s</string>
+    <string name="hist_submitted_at">Registrado em %s</string>
     <string name="hist_points">+%d pts</string>
 
     <!-- Perfil: ver tudo + telas completas (Shared Element Transition) -->

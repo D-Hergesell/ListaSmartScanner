@@ -57,28 +57,42 @@ public class HistoryAdapter extends BaseAdapter {
         ImageView icon = convertView.findViewById(R.id.histIcon);
         TextView title = convertView.findViewById(R.id.histTitle);
         TextView detail = convertView.findViewById(R.id.histDetail);
+        TextView purchaseDate = convertView.findViewById(R.id.histPurchaseDate);
         TextView date = convertView.findViewById(R.id.histDate);
         TextView points = convertView.findViewById(R.id.histPoints);
 
         boolean isQr = Contribution.TYPE_QR.equals(c.getType());
 
+        // QR e manual exibem as MESMAS informações: produto, mercado, preço e
+        // data da compra. (No QR não mostramos mais o link do SEFAZ.) Apenas o
+        // ícone/título diferenciam a origem do registro.
         if (isQr) {
             iconBox.setBackgroundResource(R.drawable.bg_icon_green);
             icon.setImageResource(R.drawable.ic_qr);
             title.setText(R.string.hist_qr_title);
-            detail.setVisibility(c.getRawData() != null ? View.VISIBLE : View.GONE);
-            detail.setText(c.getRawData());
         } else {
             iconBox.setBackgroundResource(R.drawable.bg_icon_blue);
             icon.setImageResource(R.drawable.ic_edit);
             title.setText(R.string.hist_manual_title);
-            detail.setVisibility(View.VISIBLE);
-            detail.setText(context.getString(R.string.hist_manual_detail,
-                    c.getProduct(), c.getMarket(), c.getPrice()));
+        }
+
+        detail.setVisibility(View.VISIBLE);
+        detail.setText(context.getString(R.string.hist_manual_detail,
+                c.getProduct(), c.getMarket(), c.getPrice()));
+
+        // Data da compra (campo "date" da contribuição).
+        if (c.getDate() != null && !c.getDate().isEmpty()) {
+            purchaseDate.setVisibility(View.VISIBLE);
+            purchaseDate.setText(context.getString(R.string.hist_purchase_date,
+                    DateHelper.formatDate(c.getDate())));
+        } else {
+            purchaseDate.setVisibility(View.GONE);
         }
 
         points.setText(context.getString(R.string.hist_points, c.getPoints()));
-        date.setText(DateHelper.formatTimestamp(c.getSubmittedAt()));
+        // Momento da inclusão do registro (mantido).
+        date.setText(context.getString(R.string.hist_submitted_at,
+                DateHelper.formatTimestamp(c.getSubmittedAt())));
 
         return convertView;
     }

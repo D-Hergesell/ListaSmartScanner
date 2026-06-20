@@ -14,6 +14,8 @@ public class DateHelper {
             new SimpleDateFormat("yyyy-MM-dd", new Locale("pt", "BR"));
     private static final SimpleDateFormat DISPLAY =
             new SimpleDateFormat("dd MMM yyyy 'às' HH:mm", new Locale("pt", "BR"));
+    private static final SimpleDateFormat DISPLAY_DATE =
+            new SimpleDateFormat("dd MMM yyyy", new Locale("pt", "BR"));
 
     public static String todayIso() {
         return ISO.format(new Date());
@@ -35,5 +37,11 @@ public class DateHelper {
 
     public static String formatTimestamp(long millis) {
         return DISPLAY.format(new Date(millis));
+    }
+
+    /** Formata a data da compra ("yyyy-MM-dd") para exibição (ex.: "15 jun 2025"). */
+    public static String formatDate(String iso) {
+        Date d = parseIso(iso);
+        return d != null ? DISPLAY_DATE.format(d) : iso;
     }
 }

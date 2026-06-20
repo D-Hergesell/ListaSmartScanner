@@ -64,10 +64,20 @@
             android:textSize="13sp" />
 
         <TextView
+            android:id="@+id/histPurchaseDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            tools:text="Compra em 15 jun 2025"
+            android:textColor="@color/gray_600"
+            android:textSize="12sp" />
+
+        <TextView
             android:id="@+id/histDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
+            tools:text="Registrado em 16 jun 2025 às 14:30"
             android:textColor="@color/gray_500"
             android:textSize="11sp" />
     </LinearLayout>
