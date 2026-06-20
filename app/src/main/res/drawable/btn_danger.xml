@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Botão de ação destrutiva (ex.: Sair): fundo vermelho, cantos arredondados. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/red" />
-    <corners android:radius="10dp" />
-</shape>

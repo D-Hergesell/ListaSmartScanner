@@ -393,7 +393,8 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="16dp"
-            android:background="@drawable/btn_danger"
+            android:backgroundTint="@color/red"
+            app:cornerRadius="10dp"
             android:text="@string/btn_logout"
             android:textColor="@color/white" />
     </LinearLayout>
