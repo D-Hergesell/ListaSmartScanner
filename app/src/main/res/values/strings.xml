@@ -111,6 +111,7 @@
     <string name="edit_success">Registro atualizado. Edições não geram pontos.</string>
     <string name="delete_success">Registro excluído. Os pontos foram removidos.</string>
     <string name="record_action_error">Não foi possível concluir a ação. Verifique a conexão e tente novamente.</string>
+    <string name="qr_not_editable">Registros via QR Code não podem ser editados ou excluídos.</string>
     <string name="empty_records">Nenhum registro encontrado.</string>
 
     <!-- Gamificação: selo de confiabilidade -->

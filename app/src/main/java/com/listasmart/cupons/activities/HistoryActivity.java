@@ -90,6 +90,12 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void showActionsDialog(Contribution c) {
+        // Registros via QR Code não podem ser editados nem excluídos
+        // (origem autoritativa no cupom fiscal).
+        if (Contribution.TYPE_QR.equals(c.getType())) {
+            Toast.makeText(this, R.string.qr_not_editable, Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
                 .setTitle(R.string.record_actions_title)
                 .setItems(new CharSequence[]{

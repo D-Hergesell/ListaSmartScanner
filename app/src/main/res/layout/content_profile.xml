@@ -315,7 +315,7 @@
                 android:gravity="center"
                 android:paddingVertical="10dp"
                 android:text="@string/see_full_ranking"
-                android:textColor="@color/indigo"
+                android:textColor="@color/white"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -384,7 +384,7 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/btn_outline"
                 android:text="@string/see_all_records"
-                android:textColor="@color/indigo"
+                android:textColor="@color/white"
                 android:visibility="gone" />
         </LinearLayout>
 
@@ -393,8 +393,8 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="16dp"
-            android:background="@drawable/btn_outline"
+            android:background="@drawable/btn_danger"
             android:text="@string/btn_logout"
-            android:textColor="@color/gray_800" />
+            android:textColor="@color/white" />
     </LinearLayout>
 </ScrollView>
