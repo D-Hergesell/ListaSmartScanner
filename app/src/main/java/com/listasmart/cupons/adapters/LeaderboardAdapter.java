@@ -66,7 +66,8 @@ public class LeaderboardAdapter extends BaseAdapter {
         position_.setText(String.valueOf(shownRank));
         avatar.setText(user.getAvatar());
         name.setText(user.getName());
-        contribs.setText(context.getString(R.string.contributions_count, user.getContributions()));
+        // Subtítulo: Selo de Confiabilidade vindo do backend (/ranking).
+        contribs.setText(user.getBadge() != null ? user.getBadge() : "");
         points.setText(String.valueOf(user.getPoints()));
 
         // Destaque visual para o usuário atual

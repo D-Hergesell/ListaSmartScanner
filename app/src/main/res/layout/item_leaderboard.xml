@@ -52,7 +52,7 @@
             android:id="@+id/rankContribs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="45 contribuições"
+            tools:text="Ouro III"
             android:textColor="@color/gray_600"
             android:textSize="12sp" />
     </LinearLayout>
