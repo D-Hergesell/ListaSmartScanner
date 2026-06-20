@@ -40,6 +40,16 @@
             android:name=".activities.ScannerActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activities.RankingActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name=".activities.HistoryActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.MainActivity" />
+
     </application>
 
 </manifest>

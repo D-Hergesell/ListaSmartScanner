@@ -1,7 +1,7 @@
 package com.listasmart.cupons.models;
 
 /**
- * Item do ranking de colaboradores. Os concorrentes vêm da MockAPI;
+ * Item do ranking de colaboradores. Os concorrentes vêm da API;
  * o usuário atual é montado a partir dos dados locais.
  */
 public class LeaderboardUser {
@@ -11,6 +11,9 @@ public class LeaderboardUser {
     private int contributions;
     private String avatar;
     private boolean currentUser;
+    // Posição real (1-based) no ranking. 0 = usar a posição na lista exibida.
+    // Útil ao mostrar o usuário fora do top 10 mantendo seu ranking verdadeiro.
+    private int rank;
 
     public LeaderboardUser() {
     }
@@ -37,4 +40,7 @@ public class LeaderboardUser {
 
     public boolean isCurrentUser() { return currentUser; }
     public void setCurrentUser(boolean currentUser) { this.currentUser = currentUser; }
+
+    public int getRank() { return rank; }
+    public void setRank(int rank) { this.rank = rank; }
 }

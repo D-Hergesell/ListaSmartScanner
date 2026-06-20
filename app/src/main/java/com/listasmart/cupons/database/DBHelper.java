@@ -20,7 +20,7 @@ import java.util.List;
  *
  * Tabelas:
  *  - contributions: contribuições do usuário (entidade principal do app)
- *  - products / markets: cache local dos dados vindos da MockAPI (Retrofit)
+ *  - products / markets: cache local dos dados vindos da API (Retrofit)
  */
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -225,7 +225,7 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     // ---------------------------------------------------------------
-    // CRUD - Produtos / Mercados (cache da MockAPI)
+    // CRUD - Produtos / Mercados (cache da API)
     // ---------------------------------------------------------------
 
     /** Substitui o cache de produtos pelos dados recebidos da API. */

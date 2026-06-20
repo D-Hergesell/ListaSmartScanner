@@ -8,7 +8,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -19,8 +18,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.gson.Gson;
 import com.listasmart.cupons.R;
 import com.listasmart.cupons.adapters.HistoryAdapter;
 import com.listasmart.cupons.adapters.LeaderboardAdapter;
@@ -49,7 +50,7 @@ import retrofit2.Response;
 /**
  * Tela principal: header fixo + três abas (Escanear, Manual, Perfil) alternadas
  * por visibilidade, e bottom navigation. Concentra a navegação interna,
- * o consumo da MockAPI (Retrofit), o cache/CRUD no SQLite e a gamificação.
+ * o consumo da API (Retrofit), o cache/CRUD no SQLite e a gamificação.
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -77,6 +78,13 @@ public class MainActivity extends AppCompatActivity {
     // Valor da opção "Outro" nos spinners (carregado de strings.xml em onCreate)
     private String other;
 
+    // Limite de itens exibidos no preview do Perfil (ranking/registros).
+    private static final int PROFILE_PREVIEW_LIMIT = 10;
+
+    // Últimas listas completas carregadas, passadas às telas "ver tudo".
+    private List<LeaderboardUser> fullLeaderboard = new ArrayList<>();
+    private List<Contribution> fullHistory = new ArrayList<>();
+
     // Launcher do scanner (recebe o resultado do QR)
     private final ActivityResultLauncher<Intent> scannerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -84,6 +92,16 @@ public class MainActivity extends AppCompatActivity {
                         if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                             String qr = result.getData().getStringExtra(ScannerActivity.EXTRA_QR_RESULT);
                             onQrScanned(qr);
+                        }
+                    });
+
+    // Tela "ver todos os registros": ao voltar com alteração (edição/exclusão),
+    // recarrega o Perfil para refletir pontos/contagem/ranking atualizados.
+    private final ActivityResultLauncher<Intent> historyLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            refreshProfile();
                         }
                     });
 
@@ -100,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         setupTabs();
         setupScan();
         setupManual();
+        setupProfileActions();
         loadCatalog();        // Retrofit -> SQLite (apenas na 1ª carga)
         flushOutbox();        // reenvia contribuições pendentes (fila offline)
         showTab(0);           // inicia na aba Escanear
@@ -423,7 +442,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ---------------------------------------------------------------
-    // Catálogo: Retrofit (MockAPI) -> cache no SQLite -> Spinners
+    // Catálogo: Retrofit (API) -> cache no SQLite -> Spinners
     // ---------------------------------------------------------------
 
     private void loadCatalog() {
@@ -587,23 +606,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadLeaderboard() {
-        ListView listLeaderboard = contentProfile.findViewById(R.id.listLeaderboard);
-        TextView profileRank = contentProfile.findViewById(R.id.profileRank);
-
         ApiClient.getApiService().getRanking().enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<List<LeaderboardUser>> call,
                                    @NonNull Response<List<LeaderboardUser>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    listLeaderboard.setAdapter(new LeaderboardAdapter(MainActivity.this, response.body()));
+                    renderLeaderboardPreview(response.body());
                 } else {
-                    renderLocalLeaderboard(listLeaderboard, profileRank);
+                    renderLocalLeaderboard();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<LeaderboardUser>> call, @NonNull Throwable t) {
-                renderLocalLeaderboard(listLeaderboard, profileRank);
+                renderLocalLeaderboard();
             }
         });
     }
@@ -619,7 +635,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Ranking offline: usuário do cache local + concorrentes padrão. */
-    private void renderLocalLeaderboard(ListView listLeaderboard, TextView profileRank) {
+    private void renderLocalLeaderboard() {
         List<LeaderboardUser> list = new ArrayList<>(defaultCompetitors());
         list.add(new LeaderboardUser(session.getUserName(), db.sumPoints(),
                 db.countContributions(), session.getInitials(), true));
@@ -632,8 +648,46 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
+        TextView profileRank = contentProfile.findViewById(R.id.profileRank);
         profileRank.setText(getString(R.string.profile_rank, rank));
-        listLeaderboard.setAdapter(new LeaderboardAdapter(this, list));
+        renderLeaderboardPreview(list);
+    }
+
+    /**
+     * Preenche o card de ranking com os 10 primeiros colocados. Se o usuário
+     * atual estiver fora do top 10, acrescenta sua linha (com o ranking real).
+     * O container cresce conforme a quantidade de colaboradores; quando há mais
+     * de 10, exibe o atalho "Ver ranking completo".
+     */
+    private void renderLeaderboardPreview(List<LeaderboardUser> full) {
+        fullLeaderboard = full;
+
+        LinearLayout container = contentProfile.findViewById(R.id.leaderboardContainer);
+        TextView seeFull = contentProfile.findViewById(R.id.btnSeeFullRanking);
+        container.removeAllViews();
+
+        int currentUserIndex = -1;
+        for (int i = 0; i < full.size(); i++) {
+            if (full.get(i).isCurrentUser()) {
+                currentUserIndex = i;
+                break;
+            }
+        }
+
+        int topCount = Math.min(PROFILE_PREVIEW_LIMIT, full.size());
+        List<LeaderboardUser> preview = new ArrayList<>(full.subList(0, topCount));
+        if (currentUserIndex >= topCount) {
+            LeaderboardUser user = full.get(currentUserIndex);
+            user.setRank(currentUserIndex + 1); // mantém o ranking verdadeiro
+            preview.add(user);
+        }
+
+        LeaderboardAdapter adapter = new LeaderboardAdapter(this, preview);
+        for (int i = 0; i < adapter.getCount(); i++) {
+            container.addView(adapter.getView(i, null, container));
+        }
+
+        seeFull.setVisibility(full.size() > PROFILE_PREVIEW_LIMIT ? View.VISIBLE : View.GONE);
     }
 
     /** Histórico do backend, com sincronização do cache local (SQLite). */
@@ -657,16 +711,64 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Preenche o card de histórico com os 10 registros mais recentes. O
+     * container cresce conforme a quantidade de registros; quando há mais de
+     * 10, exibe o botão "Ver todos os registros".
+     */
     private void renderHistory(List<Contribution> history) {
-        ListView listHistory = contentProfile.findViewById(R.id.listHistory);
+        fullHistory = history;
+
+        LinearLayout container = contentProfile.findViewById(R.id.historyContainer);
         TextView emptyHistory = contentProfile.findViewById(R.id.emptyHistory);
+        Button seeAll = contentProfile.findViewById(R.id.btnSeeAllHistory);
+        container.removeAllViews();
+
         if (history.isEmpty()) {
             emptyHistory.setVisibility(View.VISIBLE);
-            listHistory.setAdapter(null);
-        } else {
-            emptyHistory.setVisibility(View.GONE);
-            listHistory.setAdapter(new HistoryAdapter(this, history));
+            seeAll.setVisibility(View.GONE);
+            return;
         }
+
+        emptyHistory.setVisibility(View.GONE);
+
+        int count = Math.min(PROFILE_PREVIEW_LIMIT, history.size());
+        List<Contribution> preview = new ArrayList<>(history.subList(0, count));
+        HistoryAdapter adapter = new HistoryAdapter(this, preview);
+        for (int i = 0; i < adapter.getCount(); i++) {
+            container.addView(adapter.getView(i, null, container));
+        }
+
+        seeAll.setVisibility(history.size() > PROFILE_PREVIEW_LIMIT ? View.VISIBLE : View.GONE);
+    }
+
+    // ---------------------------------------------------------------
+    // Telas "ver tudo" (Shared Element Transition)
+    // ---------------------------------------------------------------
+
+    private void setupProfileActions() {
+        TextView seeFullRanking = contentProfile.findViewById(R.id.btnSeeFullRanking);
+        Button seeAllHistory = contentProfile.findViewById(R.id.btnSeeAllHistory);
+        seeFullRanking.setOnClickListener(v -> openFullRanking());
+        seeAllHistory.setOnClickListener(v -> openFullHistory());
+    }
+
+    private void openFullRanking() {
+        View card = contentProfile.findViewById(R.id.rankingCard);
+        Intent intent = new Intent(this, RankingActivity.class);
+        intent.putExtra(RankingActivity.EXTRA_RANKING_JSON, new Gson().toJson(fullLeaderboard));
+        ActivityOptionsCompat options = ActivityOptionsCompat
+                .makeSceneTransitionAnimation(this, card, "ranking_card");
+        startActivity(intent, options.toBundle());
+    }
+
+    private void openFullHistory() {
+        View card = contentProfile.findViewById(R.id.historyCard);
+        Intent intent = new Intent(this, HistoryActivity.class);
+        intent.putExtra(HistoryActivity.EXTRA_HISTORY_JSON, new Gson().toJson(fullHistory));
+        ActivityOptionsCompat options = ActivityOptionsCompat
+                .makeSceneTransitionAnimation(this, card, "history_card");
+        historyLauncher.launch(intent, options);
     }
 
     private void setupLogout() {

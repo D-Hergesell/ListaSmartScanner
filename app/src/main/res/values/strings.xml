@@ -89,6 +89,28 @@
     <string name="hist_manual_detail">%1$s - %2$s · R$ %3$.2f</string>
     <string name="hist_points">+%d pts</string>
 
+    <!-- Perfil: ver tudo + telas completas (Shared Element Transition) -->
+    <string name="see_full_ranking">Ver ranking completo</string>
+    <string name="see_all_records">Ver todos os registros</string>
+    <string name="full_ranking_title">Ranking Global</string>
+    <string name="full_history_title">Meus Registros</string>
+    <!-- Ranking do usuário no ranking global: "Nome - #posição" -->
+    <string name="ranking_user_summary">%1$s - #%2$d</string>
+    <string name="content_desc_back">Voltar</string>
+
+    <!-- Edição / exclusão de registros -->
+    <string name="record_actions_title">O que deseja fazer?</string>
+    <string name="btn_edit">Editar</string>
+    <string name="btn_delete">Excluir</string>
+    <string name="btn_save">Salvar</string>
+    <string name="edit_record_title">Editar registro</string>
+    <string name="delete_record_title">Excluir registro</string>
+    <string name="delete_record_message">Tem certeza que deseja excluir este registro? Os pontos correspondentes serão removidos.</string>
+    <string name="edit_success">Registro atualizado. Edições não geram pontos.</string>
+    <string name="delete_success">Registro excluído. Os pontos foram removidos.</string>
+    <string name="record_action_error">Não foi possível concluir a ação. Verifique a conexão e tente novamente.</string>
+    <string name="empty_records">Nenhum registro encontrado.</string>
+
     <!-- Gamificação: selo de confiabilidade -->
     <string name="badge_gold">Ouro</string>
     <string name="badge_silver">Prata</string>

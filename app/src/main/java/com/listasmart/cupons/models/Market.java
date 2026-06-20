@@ -3,7 +3,7 @@ package com.listasmart.cupons.models;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Mercado retornado pela MockAPI via Retrofit e armazenado no SQLite.
+ * Mercado retornado pela API via Retrofit e armazenado no SQLite.
  */
 public class Market {
 

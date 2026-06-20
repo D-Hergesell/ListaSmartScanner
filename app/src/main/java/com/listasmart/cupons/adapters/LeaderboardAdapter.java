@@ -60,7 +60,10 @@ public class LeaderboardAdapter extends BaseAdapter {
         TextView contribs = convertView.findViewById(R.id.rankContribs);
         TextView points = convertView.findViewById(R.id.rankPoints);
 
-        position_.setText(String.valueOf(position + 1));
+        // Usa o ranking real quando informado (ex.: usuário fora do top 10);
+        // caso contrário, a posição na lista exibida.
+        int shownRank = user.getRank() > 0 ? user.getRank() : position + 1;
+        position_.setText(String.valueOf(shownRank));
         avatar.setText(user.getAvatar());
         name.setText(user.getName());
         contribs.setText(context.getString(R.string.contributions_count, user.getContributions()));

@@ -267,12 +267,14 @@
 
         <!-- Ranking de colaboradores -->
         <LinearLayout
+            android:id="@+id/rankingCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="18dp">
+            android:padding="18dp"
+            android:transitionName="ranking_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -296,23 +298,39 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <ListView
-                android:id="@+id/listLeaderboard"
+            <!-- Linhas do ranking (até 10 + usuário) inseridas via código.
+                 Container cresce conforme a quantidade de colaboradores. -->
+            <LinearLayout
+                android:id="@+id/leaderboardContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:divider="@null"
-                android:nestedScrollingEnabled="true" />
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/btnSeeFullRanking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:paddingVertical="10dp"
+                android:text="@string/see_full_ranking"
+                android:textColor="@color/indigo"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Histórico de contribuições -->
         <LinearLayout
+            android:id="@+id/historyCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="18dp">
+            android:padding="18dp"
+            android:transitionName="history_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -347,14 +365,27 @@
                 android:textSize="13sp"
                 android:visibility="gone" />
 
-            <ListView
-                android:id="@+id/listHistory"
+            <!-- Registros mais recentes (até 10) inseridos via código.
+                 Container cresce conforme a quantidade de registros. -->
+            <LinearLayout
+                android:id="@+id/historyContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:divider="@color/gray_200"
-                android:dividerHeight="1dp"
-                android:nestedScrollingEnabled="true" />
+                android:orientation="vertical"
+                android:showDividers="middle"
+                android:divider="@drawable/divider_history"
+                android:dividerPadding="0dp" />
+
+            <Button
+                android:id="@+id/btnSeeAllHistory"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/btn_outline"
+                android:text="@string/see_all_records"
+                android:textColor="@color/indigo"
+                android:visibility="gone" />
         </LinearLayout>
 
         <Button

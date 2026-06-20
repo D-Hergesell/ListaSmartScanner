@@ -3,7 +3,7 @@ package com.listasmart.cupons.models;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Produto retornado pela MockAPI via Retrofit e armazenado no SQLite.
+ * Produto retornado pela API via Retrofit e armazenado no SQLite.
  */
 public class Product {
 

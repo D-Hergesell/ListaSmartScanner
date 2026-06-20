@@ -6,5 +6,7 @@
         <item name="colorAccent">@color/purple</item>
         <item name="android:windowBackground">@color/bg_light</item>
         <item name="android:statusBarColor">@color/indigo</item>
+        <!-- Habilita Shared Element Transitions entre Activities. -->
+        <item name="android:windowActivityTransitions">true</item>
     </style>
 </resources>
