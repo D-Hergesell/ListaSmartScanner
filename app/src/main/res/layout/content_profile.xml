@@ -313,17 +313,15 @@
                 android:layout_marginTop="12dp"
                 android:orientation="vertical" />
 
-            <TextView
+            <Button
                 android:id="@+id/btnSeeFullRanking"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:paddingVertical="10dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="@color/indigo"
+                app:cornerRadius="10dp"
                 android:text="@string/see_full_ranking"
                 android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
 
