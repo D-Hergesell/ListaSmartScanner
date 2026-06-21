@@ -2,18 +2,28 @@ package com.listasmart.cupons.helpers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
+
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
 import com.listasmart.cupons.network.ApiClient;
 import com.listasmart.cupons.network.AuthResponse;
 
 /**
- * Controle de sessão local (SharedPreferences). Além do nome, guarda o token
- * JWT e o id do usuário retornados pelo backend, e propaga o token ao
- * {@link ApiClient} para autenticar as requisições.
+ * Controle de sessão local. Dados sensíveis (token JWT, id do usuário) são
+ * gravados em {@link EncryptedSharedPreferences}, com a chave mestra protegida
+ * pelo Android Keystore (componente de chaves seguro do SO). Em caso de falha
+ * ao inicializar a criptografia (ex.: Keystore indisponível em alguns
+ * emuladores), há degradação graciosa para SharedPreferences comum, mantendo o
+ * app funcional. Propaga o token ao {@link ApiClient} para autenticar as
+ * requisições.
  */
 public class SessionManager {
 
+    private static final String TAG = "SessionManager";
     private static final String PREF_NAME = "lista_smart_session";
+    private static final String PREF_NAME_SECURE = "lista_smart_session_secure";
     private static final String KEY_LOGGED = "is_logged";
     private static final String KEY_NAME = "user_name";
     private static final String KEY_TOKEN = "auth_token";
@@ -22,10 +32,33 @@ public class SessionManager {
     private final SharedPreferences prefs;
 
     public SessionManager(Context context) {
-        prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs = buildSecurePrefs(context.getApplicationContext());
         // Garante que o token persistido esteja disponível ao ApiClient
         // logo na criação (ex.: app reaberto com sessão ativa).
         ApiClient.setAuthToken(getToken());
+    }
+
+    /**
+     * Cria o armazenamento criptografado (AES-256) com a chave mestra no
+     * Android Keystore. Se a inicialização falhar, cai para SharedPreferences
+     * comum para não travar o login.
+     */
+    private static SharedPreferences buildSecurePrefs(Context context) {
+        try {
+            MasterKey masterKey = new MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+            return EncryptedSharedPreferences.create(
+                    context,
+                    PREF_NAME_SECURE,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+        } catch (Exception e) {
+            Log.w(TAG, "Falha ao inicializar armazenamento criptografado; "
+                    + "usando SharedPreferences comum.", e);
+            return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        }
     }
 
     /** Login real (backend): persiste token + id + username e ativa no ApiClient. */

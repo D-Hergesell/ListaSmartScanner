@@ -4,10 +4,12 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.listasmart.cupons.R;
 import com.listasmart.cupons.helpers.DateHelper;
@@ -16,84 +18,98 @@ import com.listasmart.cupons.models.Contribution;
 import java.util.List;
 
 /**
- * Adapter do histórico de contribuições (ListView da tela de Perfil).
- * Diferencia visualmente leituras de QR e cadastros manuais.
+ * Adapter do histórico de contribuições (RecyclerView). Diferencia visualmente
+ * leituras de QR e cadastros manuais. O clique em um item é opcional: o Perfil
+ * usa apenas para exibição; a tela de histórico completo registra um listener
+ * para abrir as ações de editar/excluir.
  */
-public class HistoryAdapter extends BaseAdapter {
+public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.VH> {
+
+    public interface OnItemClickListener {
+        void onItemClick(Contribution c);
+    }
 
     private final Context context;
     private final List<Contribution> items;
+    private OnItemClickListener listener;
 
     public HistoryAdapter(Context context, List<Contribution> items) {
         this.context = context;
         this.items = items;
     }
 
+    /** Define o callback de clique (null = itens não interativos, como no Perfil). */
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    @NonNull
     @Override
-    public int getCount() {
-        return items.size();
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(context).inflate(R.layout.item_history, parent, false);
+        return new VH(v);
     }
 
     @Override
-    public Object getItem(int position) {
-        return items.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return items.get(position).getId();
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = LayoutInflater.from(context)
-                    .inflate(R.layout.item_history, parent, false);
-        }
-
+    public void onBindViewHolder(@NonNull VH h, int position) {
         Contribution c = items.get(position);
-
-        FrameLayout iconBox = convertView.findViewById(R.id.histIconBox);
-        ImageView icon = convertView.findViewById(R.id.histIcon);
-        TextView title = convertView.findViewById(R.id.histTitle);
-        TextView detail = convertView.findViewById(R.id.histDetail);
-        TextView purchaseDate = convertView.findViewById(R.id.histPurchaseDate);
-        TextView date = convertView.findViewById(R.id.histDate);
-        TextView points = convertView.findViewById(R.id.histPoints);
 
         boolean isQr = Contribution.TYPE_QR.equals(c.getType());
 
         // QR e manual exibem as MESMAS informações: produto, mercado, preço e
-        // data da compra. (No QR não mostramos mais o link do SEFAZ.) Apenas o
-        // ícone/título diferenciam a origem do registro.
+        // data da compra. Apenas o ícone/título diferenciam a origem do registro.
         if (isQr) {
-            iconBox.setBackgroundResource(R.drawable.bg_icon_green);
-            icon.setImageResource(R.drawable.ic_qr);
-            title.setText(R.string.hist_qr_title);
+            h.iconBox.setBackgroundResource(R.drawable.bg_icon_green);
+            h.icon.setImageResource(R.drawable.ic_qr);
+            h.title.setText(R.string.hist_qr_title);
         } else {
-            iconBox.setBackgroundResource(R.drawable.bg_icon_blue);
-            icon.setImageResource(R.drawable.ic_edit);
-            title.setText(R.string.hist_manual_title);
+            h.iconBox.setBackgroundResource(R.drawable.bg_icon_blue);
+            h.icon.setImageResource(R.drawable.ic_edit);
+            h.title.setText(R.string.hist_manual_title);
         }
 
-        detail.setVisibility(View.VISIBLE);
-        detail.setText(context.getString(R.string.hist_manual_detail,
+        h.detail.setVisibility(View.VISIBLE);
+        h.detail.setText(context.getString(R.string.hist_manual_detail,
                 c.getProduct(), c.getMarket(), c.getPrice()));
 
         // Data da compra (campo "date" da contribuição).
         if (c.getDate() != null && !c.getDate().isEmpty()) {
-            purchaseDate.setVisibility(View.VISIBLE);
-            purchaseDate.setText(context.getString(R.string.hist_purchase_date,
+            h.purchaseDate.setVisibility(View.VISIBLE);
+            h.purchaseDate.setText(context.getString(R.string.hist_purchase_date,
                     DateHelper.formatDate(c.getDate())));
         } else {
-            purchaseDate.setVisibility(View.GONE);
+            h.purchaseDate.setVisibility(View.GONE);
         }
 
-        points.setText(context.getString(R.string.hist_points, c.getPoints()));
-        // Momento da inclusão do registro (mantido).
-        date.setText(context.getString(R.string.hist_submitted_at,
+        h.points.setText(context.getString(R.string.hist_points, c.getPoints()));
+        // Momento da inclusão do registro.
+        h.date.setText(context.getString(R.string.hist_submitted_at,
                 DateHelper.formatTimestamp(c.getSubmittedAt())));
 
-        return convertView;
+        h.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onItemClick(c);
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return items.size();
+    }
+
+    public static class VH extends RecyclerView.ViewHolder {
+        final FrameLayout iconBox;
+        final ImageView icon;
+        final TextView title, detail, purchaseDate, date, points;
+
+        VH(@NonNull View v) {
+            super(v);
+            iconBox = v.findViewById(R.id.histIconBox);
+            icon = v.findViewById(R.id.histIcon);
+            title = v.findViewById(R.id.histTitle);
+            detail = v.findViewById(R.id.histDetail);
+            purchaseDate = v.findViewById(R.id.histPurchaseDate);
+            date = v.findViewById(R.id.histDate);
+            points = v.findViewById(R.id.histPoints);
+        }
     }
 }

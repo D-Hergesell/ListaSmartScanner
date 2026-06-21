@@ -2,10 +2,11 @@ package com.listasmart.cupons.activities;
 
 import android.os.Bundle;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -38,7 +39,8 @@ public class RankingActivity extends AppCompatActivity {
 
         List<LeaderboardUser> ranking = parseRanking(getIntent().getStringExtra(EXTRA_RANKING_JSON));
 
-        ListView list = findViewById(R.id.listFullRanking);
+        RecyclerView list = findViewById(R.id.listFullRanking);
+        list.setLayoutManager(new LinearLayoutManager(this));
         list.setAdapter(new LeaderboardAdapter(this, ranking));
 
         renderUserSummary(ranking);

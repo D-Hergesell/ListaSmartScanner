@@ -133,19 +133,28 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public void replaceContributions(List<Contribution> items) {
         SQLiteDatabase db = getWritableDatabase();
-        db.delete(T_CONTRIB, null, null);
-        for (Contribution c : items) {
-            ContentValues v = new ContentValues();
-            v.put(C_ID, c.getId());            // id canônico do backend
-            v.put(C_TYPE, c.getType());
-            v.put(C_PRODUCT, c.getProduct());
-            v.put(C_MARKET, c.getMarket());
-            v.put(C_PRICE, c.getPrice());
-            v.put(C_DATE, c.getDate());
-            v.put(C_RAW, c.getRawData());
-            v.put(C_SUBMITTED, c.getSubmittedAt());
-            v.put(C_POINTS, c.getPoints());
-            db.insert(T_CONTRIB, null, v);
+        // Transação ACID: o delete + os N inserts são atômicos. Se o app for
+        // encerrado no meio, o histórico local não fica parcialmente sobrescrito
+        // (faz rollback para o estado anterior).
+        db.beginTransaction();
+        try {
+            db.delete(T_CONTRIB, null, null);
+            for (Contribution c : items) {
+                ContentValues v = new ContentValues();
+                v.put(C_ID, c.getId());            // id canônico do backend
+                v.put(C_TYPE, c.getType());
+                v.put(C_PRODUCT, c.getProduct());
+                v.put(C_MARKET, c.getMarket());
+                v.put(C_PRICE, c.getPrice());
+                v.put(C_DATE, c.getDate());
+                v.put(C_RAW, c.getRawData());
+                v.put(C_SUBMITTED, c.getSubmittedAt());
+                v.put(C_POINTS, c.getPoints());
+                db.insert(T_CONTRIB, null, v);
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
         }
         db.close();
     }
@@ -231,12 +240,18 @@ public class DBHelper extends SQLiteOpenHelper {
     /** Substitui o cache de produtos pelos dados recebidos da API. */
     public void replaceProducts(List<Product> products) {
         SQLiteDatabase db = getWritableDatabase();
-        db.delete(T_PRODUCTS, null, null);
-        for (Product p : products) {
-            ContentValues v = new ContentValues();
-            v.put(P_ID, p.getId());
-            v.put(P_NAME, p.getName());
-            db.insert(T_PRODUCTS, null, v);
+        db.beginTransaction(); // atômico: substitui o cache sem estado intermediário
+        try {
+            db.delete(T_PRODUCTS, null, null);
+            for (Product p : products) {
+                ContentValues v = new ContentValues();
+                v.put(P_ID, p.getId());
+                v.put(P_NAME, p.getName());
+                db.insert(T_PRODUCTS, null, v);
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
         }
         db.close();
     }
@@ -259,12 +274,18 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void replaceMarkets(List<Market> markets) {
         SQLiteDatabase db = getWritableDatabase();
-        db.delete(T_MARKETS, null, null);
-        for (Market m : markets) {
-            ContentValues v = new ContentValues();
-            v.put(M_ID, m.getId());
-            v.put(M_NAME, m.getName());
-            db.insert(T_MARKETS, null, v);
+        db.beginTransaction(); // atômico: substitui o cache sem estado intermediário
+        try {
+            db.delete(T_MARKETS, null, null);
+            for (Market m : markets) {
+                ContentValues v = new ContentValues();
+                v.put(M_ID, m.getId());
+                v.put(M_NAME, m.getName());
+                db.insert(T_MARKETS, null, v);
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
         }
         db.close();
     }

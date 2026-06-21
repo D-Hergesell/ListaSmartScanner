@@ -1,18 +1,22 @@
 package com.listasmart.cupons.activities;
 
 import android.app.DatePickerDialog;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -50,7 +54,7 @@ public class HistoryActivity extends AppCompatActivity {
     private HistoryAdapter adapter;
     private boolean changed; // marca se algo foi editado/excluído
 
-    private ListView list;
+    private RecyclerView list;
     private TextView empty;
 
     @Override
@@ -64,13 +68,17 @@ public class HistoryActivity extends AppCompatActivity {
         list = findViewById(R.id.listFullHistory);
         empty = findViewById(R.id.emptyRecords);
 
+        list.setLayoutManager(new LinearLayoutManager(this));
+        DividerItemDecoration divider = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+        Drawable d = ContextCompat.getDrawable(this, R.drawable.divider_history);
+        if (d != null) divider.setDrawable(d);
+        list.addItemDecoration(divider);
+
         items.addAll(parseHistory(getIntent().getStringExtra(EXTRA_HISTORY_JSON)));
         adapter = new HistoryAdapter(this, items);
-        list.setAdapter(adapter);
-
         // Toque em um registro abre as ações (editar / excluir).
-        list.setOnItemClickListener((parent, view, position, id) ->
-                showActionsDialog(items.get(position)));
+        adapter.setOnItemClickListener(this::showActionsDialog);
+        list.setAdapter(adapter);
 
         refreshEmptyState();
     }

@@ -6,7 +6,8 @@ NeonDB): o backend é a fonte da verdade e o SQLite funciona como cache de leitu
 (catálogo e histórico) e fila offline (outbox) para envios sem conexão.
 
 ## Stack
-Java 17 · Layouts XML · Gradle (Groovy) · Retrofit · SQLite · SharedPreferences · CameraX + ML Kit (QR)
+Java 17 · Layouts XML · Gradle (Groovy) · Retrofit · SQLite (cache transacional) ·
+EncryptedSharedPreferences (Keystore) · RecyclerView · CameraX + ML Kit (QR)
 
 ## Rodar
 1. Abra a pasta no **Android Studio** e aguarde o Gradle sincronizar.
@@ -21,10 +22,10 @@ Java 17 · Layouts XML · Gradle (Groovy) · Retrofit · SQLite · SharedPrefere
 ```
 com.listasmart.cupons
 ├── activities/   Login, Main (3 abas), Scanner, Ranking, History
-├── adapters/     Leaderboard, History (ListView)
-├── database/     DBHelper (cache SQLite + fila offline)
+├── adapters/     Leaderboard, History (RecyclerView)
+├── database/     DBHelper (cache SQLite transacional + fila offline)
 ├── network/      ApiClient (Retrofit + JWT), ApiService
-├── helpers/      Session, Date
+├── helpers/      Session (token cifrado via Keystore), Date
 └── models/       Contribution, Product, Market, LeaderboardUser, UserMe, OutboxEntry
 ```
 

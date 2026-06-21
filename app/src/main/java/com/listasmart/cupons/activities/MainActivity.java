@@ -20,6 +20,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.gson.Gson;
@@ -631,9 +634,12 @@ public class MainActivity extends AppCompatActivity {
     private void renderLeaderboardPreview(List<LeaderboardUser> full) {
         fullLeaderboard = full;
 
-        LinearLayout container = contentProfile.findViewById(R.id.leaderboardContainer);
+        RecyclerView rv = contentProfile.findViewById(R.id.leaderboardContainer);
         TextView seeFull = contentProfile.findViewById(R.id.btnSeeFullRanking);
-        container.removeAllViews();
+        if (rv.getLayoutManager() == null) {
+            rv.setLayoutManager(new LinearLayoutManager(this));
+            rv.setNestedScrollingEnabled(false); // rola junto com o ScrollView do perfil
+        }
 
         int currentUserIndex = -1;
         for (int i = 0; i < full.size(); i++) {
@@ -651,11 +657,7 @@ public class MainActivity extends AppCompatActivity {
             preview.add(user);
         }
 
-        LeaderboardAdapter adapter = new LeaderboardAdapter(this, preview);
-        for (int i = 0; i < adapter.getCount(); i++) {
-            container.addView(adapter.getView(i, null, container));
-        }
-
+        rv.setAdapter(new LeaderboardAdapter(this, preview));
         seeFull.setVisibility(full.size() > PROFILE_PREVIEW_LIMIT ? View.VISIBLE : View.GONE);
     }
 
@@ -691,14 +693,25 @@ public class MainActivity extends AppCompatActivity {
         // Encerra o spinner do pull-to-refresh (o histórico é a última carga visível).
         if (profileSwipeRefresh != null) profileSwipeRefresh.setRefreshing(false);
 
-        LinearLayout container = contentProfile.findViewById(R.id.historyContainer);
+        RecyclerView rv = contentProfile.findViewById(R.id.historyContainer);
         TextView emptyHistory = contentProfile.findViewById(R.id.emptyHistory);
         Button seeAll = contentProfile.findViewById(R.id.btnSeeAllHistory);
-        container.removeAllViews();
+
+        if (rv.getLayoutManager() == null) {
+            rv.setLayoutManager(new LinearLayoutManager(this));
+            rv.setNestedScrollingEnabled(false); // rola junto com o ScrollView do perfil
+            DividerItemDecoration divider =
+                    new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+            android.graphics.drawable.Drawable d =
+                    ContextCompat.getDrawable(this, R.drawable.divider_history);
+            if (d != null) divider.setDrawable(d);
+            rv.addItemDecoration(divider);
+        }
 
         if (history.isEmpty()) {
             emptyHistory.setVisibility(View.VISIBLE);
             seeAll.setVisibility(View.GONE);
+            rv.setAdapter(new HistoryAdapter(this, new ArrayList<>()));
             return;
         }
 
@@ -706,10 +719,7 @@ public class MainActivity extends AppCompatActivity {
 
         int count = Math.min(PROFILE_PREVIEW_LIMIT, history.size());
         List<Contribution> preview = new ArrayList<>(history.subList(0, count));
-        HistoryAdapter adapter = new HistoryAdapter(this, preview);
-        for (int i = 0; i < adapter.getCount(); i++) {
-            container.addView(adapter.getView(i, null, container));
-        }
+        rv.setAdapter(new HistoryAdapter(this, preview));
 
         seeAll.setVisibility(history.size() > PROFILE_PREVIEW_LIMIT ? View.VISIBLE : View.GONE);
     }

@@ -278,6 +278,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_card"
+            android:descendantFocusability="blocksDescendants"
             android:orientation="vertical"
             android:padding="18dp"
             android:transitionName="ranking_card">
@@ -304,14 +305,14 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Linhas do ranking (até 10 + usuário) inseridas via código.
-                 Container cresce conforme a quantidade de colaboradores. -->
-            <LinearLayout
+            <!-- Linhas do ranking (até 10 + usuário) via RecyclerView.
+                 nestedScrollingEnabled=false: rola junto com o ScrollView pai. -->
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/leaderboardContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:orientation="vertical" />
+                android:nestedScrollingEnabled="false" />
 
             <Button
                 android:id="@+id/btnSeeFullRanking"
@@ -332,6 +333,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_card"
+            android:descendantFocusability="blocksDescendants"
             android:orientation="vertical"
             android:padding="18dp"
             android:transitionName="history_card">
@@ -369,17 +371,14 @@
                 android:textSize="13sp"
                 android:visibility="gone" />
 
-            <!-- Registros mais recentes (até 10) inseridos via código.
-                 Container cresce conforme a quantidade de registros. -->
-            <LinearLayout
+            <!-- Registros mais recentes (até 10) via RecyclerView.
+                 nestedScrollingEnabled=false: rola junto com o ScrollView pai. -->
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/historyContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:orientation="vertical"
-                android:showDividers="middle"
-                android:divider="@drawable/divider_history"
-                android:dividerPadding="0dp" />
+                android:nestedScrollingEnabled="false" />
 
             <Button
                 android:id="@+id/btnSeeAllHistory"
